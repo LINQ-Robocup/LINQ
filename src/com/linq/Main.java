@@ -1,7 +1,5 @@
 package com.linq;
 
-import javax.xml.stream.events.Namespace;
-
 import lejos.nxt.Button;
 import lejos.nxt.LCD;
 import lejos.nxt.MotorPort;
@@ -12,6 +10,18 @@ import lejos.util.Stopwatch;
 import lejos.util.Timer;
 
 public class Main {
+	
+	public static void main(String args[]) {
+		LQMotor motor = new LQMotor(MotorPort.A, MotorPort.B);
+		
+		motor.tileForward(60);
+		Delay.msDelay(1000);
+		motor.tileForward(60);
+		Delay.msDelay(1000);
+		motor.tileForward(60);
+		Delay.msDelay(1000);
+	}
+/*
 	static NXTRegulatedMotor tachoLeft = new NXTRegulatedMotor(MotorPort.A);
 	static NXTRegulatedMotor tachoRight = new NXTRegulatedMotor(MotorPort.B);
 	static NXTMotor motorLeft = new NXTMotor(MotorPort.A);
@@ -21,7 +31,7 @@ public class Main {
 	
 	public static void main(String[] args) {
 		
-		for(int i = 0; i > 2; i++) {
+		for(int i = 0; i < 2; i++) {
 			forwardTile(60);
 			motorLeft.stop();
 			motorRight.stop();
@@ -56,4 +66,5 @@ public class Main {
 			}
 		}
 	}
+	*/
 }
