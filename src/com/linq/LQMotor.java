@@ -16,13 +16,13 @@ public class LQMotor extends NXTRegulatedMotor {
 	 * NXTRegulatedMotor can't setSpeed(1~100).
 	 * So setSpeed is redirected to NXTMotor setPower. 
 	 */
-	@Override
+	
     public void setSpeed(int speed)
     {
 		motor.setPower(speed);
     }
 
-	@Override
+	
     public void setSpeed(float speed)
     {
 		motor.setPower((int)speed);
