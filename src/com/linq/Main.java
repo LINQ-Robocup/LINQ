@@ -14,40 +14,47 @@ public class Main
 		
 		LQMotor2 leftMotor = new LQMotor2(MotorPort.A);
 		LQMotor2 rightMotor = new LQMotor2(MotorPort.B);
+		LQMotor2 servo = new LQMotor2(MotorPort.C);
 		LQMover mover = new LQMover(MotorPort.A, MotorPort.B);
 		LQSensor sensor = new LQSensor();
+		servo.setPower(100);
+		servo.forward();
 		
-		leftMotor.setPower(40);
-		rightMotor.setPower(40);
-		Button
-		while () {
-			
-		}
-		int leftOffset = sensor.getSensorValue(sensor.IRDIST_LEFT);
-		int rightOffset = sensor.getSensorValue(sensor.IRDIST_RIGHT);
-		LCD.drawInt(leftOffset, 0, 0);
-		LCD.drawInt(rightOffset, 0, 1);
-		if(leftOffset > rightOffset) {
-			//go right
-			while (sensor.getSensorValue(sensor.IRDIST_LEFT) > rightOffset) {
-				leftMotor.forward();
-				rightMotor.stop();
-			}
-		}else {
-			//go left
-			while (sensor.getSensorValue(sensor.IRDIST_RIGHT) > leftOffset) {
-				leftMotor.stop();
-				rightMotor.forward();
-			}
-		}
 		leftMotor.stop();
 		rightMotor.stop();
+		leftMotor.setPower(35);
+		rightMotor.setPower(35);
+
+	
+		Delay.msDelay(500);
+		sensor.showAllSensors();
+
+		Delay.msDelay(500);
+		while(!Button.ENTER.isDown()) {
+			LCD.clear();
+			LCD.drawInt(leftMotor.getTachoCount(), 0, 0);
+			LCD.drawInt(rightMotor.getTachoCount(), 0, 1);
+			
+			Delay.msDelay(20);
+			
+		}
 		
-//		while (true) {
-//			LCD.clear();
-//			LCD.drawInt(sensor.getSensorValue(sensor.IRDIST1), 0, 0);
-//			LCD.drawInt(sensor.getSensorValue(sensor.IRDIST4), 10, 0);
-//			Delay.msDelay(10);
-//		}
+		mover.rotate(mover.LEFT);
+		Delay.msDelay(1000);
+		mover.rotate(mover.LEFT);
+		Delay.msDelay(1000);
+		mover.rotate(mover.LEFT);
+		Delay.msDelay(1000);
+		mover.rotate(mover.LEFT);
+		Delay.msDelay(1000);
+		
+		LCD.clear();
+		mover.tileForward(70);
+		Delay.msDelay(500);
+		mover.tileForward(70);
+		Delay.msDelay(500);
+		mover.setParallel();
+		mover.setDistance();
+		
 	}
 }	
