@@ -4,8 +4,10 @@ import lejos.nxt.Button;
 import lejos.nxt.LCD;
 import lejos.nxt.MotorPort;
 import lejos.util.Delay;
+import lejos.util.Stopwatch;
 
 import java.lang.Math;
+import java.util.Timer;
 
 public class Main
 {
@@ -38,23 +40,28 @@ public class Main
 			Delay.msDelay(20);
 			
 		}
-		
-		mover.rotate(mover.LEFT);
-		Delay.msDelay(1000);
-		mover.rotate(mover.LEFT);
-		Delay.msDelay(1000);
-		mover.rotate(mover.LEFT);
-		Delay.msDelay(1000);
-		mover.rotate(mover.LEFT);
-		Delay.msDelay(1000);
-		
-		LCD.clear();
-		mover.tileForward(70);
-		Delay.msDelay(500);
-		mover.tileForward(70);
-		Delay.msDelay(500);
-		mover.setParallel();
-		mover.setDistance();
-		
+		sensor.resetGyroValue();
+		for(int i = 0; i < 100; i++) {
+			int speed = 85;
+//			sensor.resetGyroValue();
+			double offset = sensor.getGyroValue();
+			
+			leftMotor.setPower(speed);
+			rightMotor.setPower(speed);
+			leftMotor.forward();
+			rightMotor.backward();
+			while (Math.abs(sensor.getGyroValue() - offset) < 8700) {
+				if(Math.abs(sensor.getGyroValue() - offset) > 7000) {
+					leftMotor.setPower(speed/2);
+					rightMotor.setPower(speed/2);
+				}
+			}
+			leftMotor.stop();
+			rightMotor.stop();
+			Delay.msDelay(500);
+		}
+//		while (true) {
+//			LCD.drawInt((int)Math.abs(sensor.getGyroValue() - offset), 0, 5);
+//		}
 	}
 }	

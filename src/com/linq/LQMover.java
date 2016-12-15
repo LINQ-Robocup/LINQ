@@ -171,22 +171,20 @@ public class LQMover {
 	}
 
 	public void rotate(int direction) {
+		int speed = 85;
 		sensor.resetGyroValue();
 		double offset = sensor.getGyroValue();
 		
 		switch (direction) {
 		case LEFT:
-			leftMotor.setPower(70);
-			rightMotor.setPower(70);
+			leftMotor.setPower(speed);
+			rightMotor.setPower(speed);
 			leftMotor.backward();
 			rightMotor.forward();
-			while (sensor.getGyroValue() - offset >= -9000 ) {
-				if(sensor.getGyroValue() - offset >= -7000) {
-					leftMotor.setPower(50);
-					rightMotor.setPower(50);
-				}else if(sensor.getGyroValue() - offset >= -8000) {
-					leftMotor.setPower(40);
-					rightMotor.setPower(40);
+			while (Math.abs(sensor.getGyroValue() - offset) < 9000 ) {
+				if(sensor.getGyroValue() - offset > 8000) {
+					leftMotor.setPower(speed/2);
+					rightMotor.setPower(speed/2);
 				}
 			}
 			break;
