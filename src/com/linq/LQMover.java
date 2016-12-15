@@ -172,67 +172,29 @@ public class LQMover {
 
 	public void rotate(int direction) {
 		int speed = 85;
-		sensor.resetGyroValue();
 		double offset = sensor.getGyroValue();
 		
-		switch (direction) {
-		case LEFT:
-			leftMotor.setPower(speed);
-			rightMotor.setPower(speed);
+		leftMotor.setPower(speed);
+		rightMotor.setPower(speed);
+		
+		if(direction == LEFT) {
 			leftMotor.backward();
 			rightMotor.forward();
-			while (Math.abs(sensor.getGyroValue() - offset) < 9000 ) {
-				if(sensor.getGyroValue() - offset > 8000) {
-					leftMotor.setPower(speed/2);
-					rightMotor.setPower(speed/2);
-				}
-			}
-			break;
-		case RIGHT:
-			leftMotor.setPower(70);
-			rightMotor.setPower(70);
+		}else if(direction == RIGHT) {
 			leftMotor.forward();
-			rightMotor.backward();
-			while (sensor.getGyroValue() - offset >= 9000 ) {
-				if(sensor.getGyroValue() - offset >= 7000) {
-					leftMotor.setPower(50);
-					rightMotor.setPower(50);
-				}else if(sensor.getGyroValue() - offset >= 8000) {
-					leftMotor.setPower(40);
-					rightMotor.setPower(40);
-				}
+			rightMotor.forward();
+		}else{
+			return;
+		}
+		
+		while (Math.abs(sensor.getGyroValue() - offset) < 8700) {
+			if(Math.abs(sensor.getGyroValue() - offset) > 7000) {
+				leftMotor.setPower(speed/2);
+				rightMotor.setPower(speed/2);
 			}
-			break;
-		case BACK:
-			leftMotor.setPower(70);
-			rightMotor.setPower(70);
-			leftMotor.forward();
-			rightMotor.backward();
-			while (sensor.getGyroValue() - offset >= 18000 ) {
-				if(sensor.getGyroValue() - offset >= 15000) {
-					leftMotor.setPower(50);
-					rightMotor.setPower(50);
-				}else if(sensor.getGyroValue() - offset >= 17000) {
-					leftMotor.setPower(40);
-					rightMotor.setPower(40);
-				}
-			}
-			break;
-		default:
-			leftMotor.setPower(70);
-			rightMotor.setPower(70);
-			if(direction > 0) {
-				leftMotor.forward();
-				rightMotor.backward();	
-			}else{
-				leftMotor.backward();
-				rightMotor.forward();
-			}
-			while (sensor.getGyroValue() - offset >= direction*100 ) {
-			}
-			break;
 		}
 		leftMotor.stop();
 		rightMotor.stop();
+		Delay.msDelay(500);
 	}
 }
