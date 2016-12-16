@@ -1,5 +1,6 @@
 package com.linq;
 
+import lejos.nxt.Button;
 import lejos.nxt.LCD;
 import lejos.nxt.Sound;
 import lejos.nxt.TachoMotorPort;
@@ -14,12 +15,14 @@ public class LQMover {
 	//温度のしきい値
 	int tempThreshold = 25;
 	
-	// Set tachometer count for forward 30cm
+	//30cm進むためのタコメータカウント
 	static final int tileTacho = 690;
 	
-	public final int LEFT = 0;
-	public final int RIGHT = 1;
-	public final int BACK = 2;
+	//各種動作における方向管理用
+	public final int LEFT	= 0;
+	public final int RIGHT	= 1;
+	public final int FRONT	= 2;
+	public final int BEHIND	= 3;
 	
 	public LQMover(TachoMotorPort left, TachoMotorPort right) {
 		//Create Instances
@@ -29,62 +32,80 @@ public class LQMover {
 	}
 	
 	public void setParallel() {
-		leftMotor.setPower(35);
-		rightMotor.setPower(35);
-		int leftOffset = sensor.getValue(sensor.IRDIST_L);
-		int rightOffset = sensor.getValue(sensor.IRDIST_R);
-		LCD.drawInt(leftOffset, 0, 0);
-		LCD.drawInt(rightOffset, 0, 1);
+		int speed = 40;
+		leftMotor.stop();
+		rightMotor.stop();
+		Delay.msDelay(500);
+		leftMotor.setPower(speed);
+		rightMotor.setPower(speed);
+		int leftOffset = sensor.getValue(sensor.IRDIST_FL);
+		Delay.msDelay(200);
+		int rightOffset = sensor.getValue(sensor.IRDIST_FR);
+		
+		/*
+		LCD.clear();
+		while (!Button.ENTER.isDown()) {
+			LCD.drawInt(leftOffset, 0, 1);
+			LCD.drawInt(rightOffset, 0, 2);
+			LCD.drawInt(sensor.getValue(sensor.IRDIST_FL), 0, 3);
+			LCD.drawInt(sensor.getValue(sensor.IRDIST_FR), 0, 4);
+		}
+		*/
+		
 		if(leftOffset > rightOffset) {
 			//go right
-			while (sensor.getValue(sensor.IRDIST_L) -2  >= sensor.getValue(sensor.IRDIST_R)) {
-				boolean isWall = false;
-				if(isWall) break;
-				if(sensor.getValue(sensor.TOUCH_R) == 1) {
-					isWall = true;
+			breakRoop:while (sensor.getValue(sensor.IRDIST_FL) >= sensor.getValue(sensor.IRDIST_FR) + 6) {
+				leftMotor.forward();
+				rightMotor.stop();
+				if(sensor.getValue(sensor.TOUCH_L) == 1) {
+					while(sensor.getValue(sensor.TOUCH_R) != 1) {
+						rightMotor.forward();
+						leftMotor.stop();
+					}
+					break breakRoop;
+				}else if(sensor.getValue(sensor.TOUCH_R) == 1) {
 					while(sensor.getValue(sensor.TOUCH_L) != 1) {
-						leftMotor.setPower(50);
 						rightMotor.stop();
 						leftMotor.forward();
 					}
+					break breakRoop;
 				}
-				leftMotor.forward();
-				rightMotor.stop();
 			}
 		}else {
 			//go left
-			while (sensor.getValue(sensor.IRDIST_R)-2  >= sensor.getValue(sensor.IRDIST_L)) {
-				boolean isWall = false;
-				if(isWall) break;
-				if(sensor.getValue(sensor.TOUCH_L) == 1) {
-					isWall = true;
-					while(sensor.getValue(sensor.TOUCH_R) != 1) {
-						rightMotor.setPower(50);
-						leftMotor.stop();
-						rightMotor.forward();
-					}
-				}
+			breakRoop:while (sensor.getValue(sensor.IRDIST_FL) + 6 <= sensor.getValue(sensor.IRDIST_FR)) {
 				leftMotor.stop();
 				rightMotor.forward();
+				if(sensor.getValue(sensor.TOUCH_L) == 1) {
+					while(sensor.getValue(sensor.TOUCH_R) != 1) {
+						rightMotor.forward();
+						leftMotor.stop();
+					}
+					break breakRoop;
+				}else if(sensor.getValue(sensor.TOUCH_R) == 1) {
+					while(sensor.getValue(sensor.TOUCH_L) != 1) {
+						rightMotor.stop();
+						leftMotor.forward();
+					}
+					break breakRoop;
+				}
 			}
 		}
 		leftMotor.stop();
 		rightMotor.stop();
-		LCD.drawInt(sensor.getValue(sensor.IRDIST_L), 0, 4);
-		LCD.drawInt(sensor.getValue(sensor.IRDIST_R), 0, 5);
 	}
 	
 	public void setDistance() {
 		leftMotor.setPower(35);
 		rightMotor.setPower(35);
-		if(Math.abs(((sensor.getValue(sensor.IRDIST_L) + sensor.getValue(sensor.IRDIST_R)) /2) - 40) >= 5) {
+		if(Math.abs(((sensor.getValue(sensor.IRDIST_FL) + sensor.getValue(sensor.IRDIST_FR)) /2) - 40) >= 5) {
 				//too far
-				while( (sensor.getValue(sensor.IRDIST_L) + sensor.getValue(sensor.IRDIST_R)) /2 > 35 ) {
+				while( (sensor.getValue(sensor.IRDIST_FL) + sensor.getValue(sensor.IRDIST_FR)) /2 > 35 ) {
 					leftMotor.forward();
 					rightMotor.forward();	
 				}
 				//too short
-				while( (sensor.getValue(sensor.IRDIST_L) + sensor.getValue(sensor.IRDIST_R)) /2 < 35 ) {
+				while( (sensor.getValue(sensor.IRDIST_FL) + sensor.getValue(sensor.IRDIST_FR)) /2 < 35 ) {
 					leftMotor.backward();
 					rightMotor.backward();
 				}
@@ -94,107 +115,77 @@ public class LQMover {
 	}
 	
 	public void tileForward(int speed) {
-		// Set speed
 		leftMotor.setPower(speed);
 		rightMotor.setPower(speed);
-
-		// Set threshold for reset counter (coudn't use resetTachoCount)
-		long thresholdLeft = leftMotor.getTachoCount();
-		long thresholdRight = rightMotor.getTachoCount();
-
-		int nowLoading = 0;
-		int nowCounting = 1;
-		int nowMeasureing = tileTacho/10;
-		// forward motors
+		int perTile = tileTacho / 10;
+		long leftMotorOffset = leftMotor.getTachoCount();
+		long rightMotorOffset = rightMotor.getTachoCount();
 		
-		int wallDistance = 10;
-		int wallAvoidDistance = 30;
-		while (true) {
-			nowLoading = (leftMotor.getTachoCount() + rightMotor.getTachoCount()) /2;
-			if(nowLoading > nowMeasureing * nowCounting) {
-//				Sound.beep();
-				//壁との距離を取る
-				sensor.readAllSensors();
-//				if(sensor.getValue(sensor.IRDIST_L) < wallDistance) {
-				if(sensor.irDistLeftValue < wallDistance) {
-					int leftOffset = leftMotor.getTachoCount();
-					while (leftMotor.getTachoCount() - leftOffset > 160) {
-						leftMotor.forward();
+		for(int i = 1; i <= 10; i ++) {
+			
+			
+			while( ((leftMotor.getTachoCount() - leftMotorOffset) + (leftMotor.getTachoCount() - leftMotorOffset)) /2 < perTile*i) {
+				leftMotor.forward();
+				rightMotor.forward();
+			}
+			if(i == 10) {
+				if ((leftMotor.getTachoCount() - leftMotorOffset) > perTile*i) {
+					if ((rightMotor.getTachoCount() - rightMotorOffset) > perTile*i) {
+						// Stop both motor when both tachometer over threshold
+						leftMotor.stop();
 						rightMotor.stop();
-					}
-					int rightOffset = rightMotor.getTachoCount();
-					while (rightMotor.getTachoCount() - rightOffset > 160) {
-						rightMotor.forward();
+						break;
+					} else {
+						// Stop left motor when only left tachometer over threshold
 						leftMotor.stop();
 					}
-				}
-				//一定の温度以上を感知した場合
-//				if(sensor.getValue(sensor.TEMP_L) > tempThreshold || sensor.getValue(sensor.TEMP_R) > tempThreshold) {
-				if(sensor.tempLeftValue > tempThreshold || sensor.tempRightValue > tempThreshold) {
-					leftMotor.stop();
-					rightMotor.stop();
-					Sound.beepSequence();
-					while(true);
-				}
-				nowCounting++;
-			}
-
-			if(sensor.isLeftTouchPressed() == 1 || sensor.isRightTouchPressed() == 1) {
-				leftMotor.stop();
-				rightMotor.stop();
-				break;
-			}
-			
-			leftMotor.forward();
-			rightMotor.forward();
-			// Show tachometers value
-			LCD.drawInt(leftMotor.getTachoCount() - (int) thresholdLeft, 0, 0);
-			LCD.drawInt(rightMotor.getTachoCount() - (int) thresholdRight, 0, 1);
-
-			if (leftMotor.getTachoCount() - thresholdLeft >= tileTacho) {
-				if (rightMotor.getTachoCount() - thresholdRight >= tileTacho) {
-					// Stop both motor when both tachometer over threshold
-					leftMotor.stop();
-					rightMotor.stop();
-					break;
 				} else {
-					// Stop left motor when only left tachometer over threshold
-					leftMotor.stop();
+					if (rightMotor.getTachoCount() - rightMotorOffset >= perTile*i) {
+						// Stop right motor when only left tachometer over threshold
+						rightMotor.stop();
+					}
 				}
-			} else {
-				if (rightMotor.getTachoCount() - thresholdRight >= tileTacho) {
-					// Stop right motor when only left tachometer over threshold
-					rightMotor.stop();
-				}
-			}
-		}
-	}
-
-	public void rotate(int direction) {
-		int speed = 85;
-		double offset = sensor.getGyroValue();
-		
-		leftMotor.setPower(speed);
-		rightMotor.setPower(speed);
-		
-		if(direction == LEFT) {
-			leftMotor.backward();
-			rightMotor.forward();
-		}else if(direction == RIGHT) {
-			leftMotor.forward();
-			rightMotor.forward();
-		}else{
-			return;
-		}
-		
-		while (Math.abs(sensor.getGyroValue() - offset) < 8700) {
-			if(Math.abs(sensor.getGyroValue() - offset) > 7000) {
-				leftMotor.setPower(speed/2);
-				rightMotor.setPower(speed/2);
 			}
 		}
 		leftMotor.stop();
 		rightMotor.stop();
 		Delay.msDelay(500);
+	}
+
+	public void rotate(int direction) {
+		leftMotor.stop();
+		rightMotor.stop();
+		Delay.msDelay(800);
+
+		int speed = 75;
+		leftMotor.setPower(speed);
+		rightMotor.setPower(speed);
+		
+		sensor.resetGyroValue();
+		double offset = sensor.getGyroValue();
+		
+		if(direction == LEFT) {
+			while (sensor.getGyroValue() - offset - (-8700) >= 0) {
+				if(sensor.getGyroValue() - offset - (-8700) <= 3000) {
+					leftMotor.setPower(speed/2);
+					rightMotor.setPower(speed/2);
+				}
+				leftMotor.backward();
+				rightMotor.forward();
+			}
+		}else if (direction == RIGHT) {
+			while (sensor.getGyroValue() - offset - 8700 <= 0) {
+				if(sensor.getGyroValue() - offset - 8700 >= -3000) {
+					leftMotor.setPower(speed/2);
+					rightMotor.setPower(speed/2);
+				}
+				leftMotor.forward();
+				rightMotor.backward();
+			}
+		}
+		
+		leftMotor.stop();
+		rightMotor.stop();
+		Delay.msDelay(300);
 	}
 }

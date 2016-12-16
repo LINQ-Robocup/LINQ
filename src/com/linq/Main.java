@@ -31,37 +31,58 @@ public class Main
 		Delay.msDelay(500);
 		sensor.showAllSensors();
 
-		Delay.msDelay(500);
-		while(!Button.ENTER.isDown()) {
-			LCD.clear();
-			LCD.drawInt(leftMotor.getTachoCount(), 0, 0);
-			LCD.drawInt(rightMotor.getTachoCount(), 0, 1);
-			
-			Delay.msDelay(20);
-			
-		}
-		sensor.resetGyroValue();
-		for(int i = 0; i < 100; i++) {
-			int speed = 85;
-//			sensor.resetGyroValue();
-			double offset = sensor.getGyroValue();
-			
-			leftMotor.setPower(speed);
-			rightMotor.setPower(speed);
-			leftMotor.forward();
-			rightMotor.backward();
-			while (Math.abs(sensor.getGyroValue() - offset) < 8700) {
-				if(Math.abs(sensor.getGyroValue() - offset) > 7000) {
-					leftMotor.setPower(speed/2);
-					rightMotor.setPower(speed/2);
-				}
-			}
-			leftMotor.stop();
-			rightMotor.stop();
-			Delay.msDelay(500);
-		}
-//		while (true) {
-//			LCD.drawInt((int)Math.abs(sensor.getGyroValue() - offset), 0, 5);
-//		}
+		Delay.msDelay(1000);
+
+		int speed = 70;
+		mover.tileForward(speed);
+		
+		mover.tileForward(speed);
+
+		mover.tileForward(speed);
+		mover.setParallel();
+		mover.setDistance();
+		mover.rotate(mover.LEFT);
+		
+		mover.tileForward(speed);
+		mover.setParallel();
+		mover.setDistance();
+		mover.rotate(mover.LEFT);
+		
+		mover.tileForward(speed);
+		mover.setParallel();
+		mover.setDistance();
+		mover.rotate(mover.RIGHT);
+		
+		mover.tileForward(speed);
+		mover.rotate(mover.RIGHT);
+		
+		mover.tileForward(speed);
+		mover.setParallel();
+		mover.setDistance();
+		mover.rotate(mover.LEFT);
+		
+		mover.tileForward(speed);
+		mover.setParallel();
+		mover.setDistance();
+		mover.rotate(mover.LEFT);
+		
+		mover.tileForward(speed);
+		mover.setParallel();
+		mover.setDistance();
+		mover.rotate(mover.RIGHT);
+		
+		mover.tileForward(speed);
+		mover.setParallel();
+		mover.setDistance();
+		mover.rotate(mover.RIGHT);
+		
+		mover.tileForward(speed);
+		mover.setParallel();
+		mover.setDistance();
+
+		
+		
+		
+
 	}
 }	

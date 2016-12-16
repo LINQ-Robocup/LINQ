@@ -68,13 +68,13 @@ public class LQSensor {
 		send[0] = 1;
 		RS485.hsWrite(send, 0, 1);
 		RS485.hsRead(get, 0, 7);
-		irDistFRightValue	= get[0] -3;
+		irDistFRightValue	= get[0] -1;
 		irDistRightValue	= get[1];
-		irDistLeftValue	= get[2];
+		irDistLeftValue		= get[2];
 		irDistFLeftValue	= get[3];
 		tempRightValue		= get[4];
 		tempLeftValue		= get[5];
-		srValue			= get[6];
+		srValue				= get[6];
 		Delay.msDelay(10);
 	}
 	public int getValue(int sensor) {
@@ -114,7 +114,7 @@ public class LQSensor {
 		return light_right.getLightValue() > 90 ? 1 : 0;
 	}
 	public void showAllSensors() {
-		int showValueOffset = 11;
+		int showValueOffset = 10;
 		int menu = 0;
 		
 		while (!Button.ENTER.isDown()) {
