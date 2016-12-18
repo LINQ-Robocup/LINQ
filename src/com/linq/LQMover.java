@@ -4,7 +4,6 @@ import lejos.nxt.Button;
 import lejos.nxt.LCD;
 import lejos.nxt.Sound;
 import lejos.nxt.TachoMotorPort;
-import lejos.robotics.navigation.Move;
 import lejos.util.Delay;
 
 public class LQMover {
