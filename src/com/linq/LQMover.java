@@ -118,11 +118,14 @@ public class LQMover {
 	public void tileForward(int speed) {
 		leftMotor.setPower(speed);
 		rightMotor.setPower(speed);
+		int wallDistOffset = 25;
+		int wallAvoidAngle = 200;
 		int perTile = tileTacho / 10;
 		long leftMotorOffset = leftMotor.getTachoCount();
 		long rightMotorOffset = rightMotor.getTachoCount();
 		
 		for(int i = 1; i <= 10; i ++) {
+			/* rescue */
 			int isRescue = sensor.isRescue();
 			switch (isRescue) {
 			case 1:
@@ -138,6 +141,39 @@ public class LQMover {
 				break;
 			}
 			
+			/* avoid wall */
+			sensor.readAllSensors();
+			if(sensor.irDistLeftValue > wallDistOffset) {
+				//left to right
+				int leftOffset = leftMotor.getTachoCount();
+				int rightOffset = rightMotor.getTachoCount();
+				while(leftMotor.getTachoCount() - leftOffset < wallAvoidAngle) {
+					leftMotor.forward();
+					rightMotor.stop();
+				}
+				while(rightMotor.getTachoCount() - rightOffset < wallAvoidAngle) {
+					leftMotor.stop();
+					rightMotor.forward();
+				}
+				leftMotor.forward();
+				rightMotor.forward();
+			}else if(sensor.irDistRightValue > wallDistOffset) {
+				//right to left
+				int leftOffset = leftMotor.getTachoCount();
+				int rightOffset = rightMotor.getTachoCount();
+				while(rightMotor.getTachoCount() - rightOffset < wallAvoidAngle) {
+					leftMotor.stop();
+					rightMotor.forward();
+				}
+				while(rightMotor.getTachoCount() - leftOffset < wallAvoidAngle) {
+					leftMotor.forward();
+					rightMotor.stop();
+				}
+				leftMotor.forward();
+				rightMotor.forward();
+			}
+			
+			/* forward 30cm */
 			while( ((leftMotor.getTachoCount() - leftMotorOffset) + (leftMotor.getTachoCount() - leftMotorOffset)) /2 < perTile*i) {
 				leftMotor.forward();
 				rightMotor.forward();
@@ -169,18 +205,18 @@ public class LQMover {
 	public void rotate(int direction) {
 		leftMotor.stop();
 		rightMotor.stop();
-		Delay.msDelay(800);
+		Delay.msDelay(500);
 
 		int speed = 75;
 		leftMotor.setPower(speed);
 		rightMotor.setPower(speed);
 		
 		sensor.resetGyroValue();
-		double offset = sensor.getGyroValue();
+		int offset = sensor.getGyroValue();
 		
 		if(direction == LEFT) {
 			while (sensor.getGyroValue() - offset - (-8700) >= 0) {
-				if(sensor.getGyroValue() - offset - (-8700) <= 3000) {
+				if(sensor.getGyroValue() - offset - (-8700) <= 2000) {
 					leftMotor.setPower(speed/2);
 					rightMotor.setPower(speed/2);
 				}
@@ -189,7 +225,7 @@ public class LQMover {
 			}
 		}else if (direction == RIGHT) {
 			while (sensor.getGyroValue() - offset - 8700 <= 0) {
-				if(sensor.getGyroValue() - offset - 8700 >= -3000) {
+				if(sensor.getGyroValue() - offset - 8700 >= -2000) {
 					leftMotor.setPower(speed/2);
 					rightMotor.setPower(speed/2);
 				}
