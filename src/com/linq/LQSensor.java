@@ -187,4 +187,37 @@ public class LQSensor {
 			return 0;
 		}
 	}
+	
+	public int isWallRight() {
+		int threshold = 30;
+		if(getValue(IRDIST_R) < threshold) {
+			return 1;
+		}else{
+			return 0;
+		}
+	}
+	public int isWallLeft() {
+		int threshold = 30;
+		if(getValue(IRDIST_L) < threshold) {
+			return 1;
+		}else{
+			return 0;
+		}
+	}
+	public int isWallFrontRight() {
+		int threshold = 30;
+		if(getValue(IRDIST_FR) < threshold) {
+			return 1;
+		}else{
+			return 0;
+		}
+	}
+	public int isWallFrontLeft() {
+		int threshold = 30;
+		if(getValue(IRDIST_FL) < threshold) {
+			return 1;
+		}else{
+			return 0;
+		}
+	}
 }
