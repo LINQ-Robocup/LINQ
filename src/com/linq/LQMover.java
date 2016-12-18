@@ -164,7 +164,7 @@ public class LQMover {
 					leftMotor.stop();
 					rightMotor.forward();
 				}
-				while(rightMotor.getTachoCount() - leftOffset < wallAvoidAngle) {
+				while(leftMotor.getTachoCount() - leftOffset < wallAvoidAngle) {
 					leftMotor.forward();
 					rightMotor.stop();
 				}
