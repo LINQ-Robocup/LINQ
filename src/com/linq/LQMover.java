@@ -4,6 +4,7 @@ import lejos.nxt.Button;
 import lejos.nxt.LCD;
 import lejos.nxt.Sound;
 import lejos.nxt.TachoMotorPort;
+import lejos.robotics.navigation.Move;
 import lejos.util.Delay;
 
 public class LQMover {
@@ -122,7 +123,20 @@ public class LQMover {
 		long rightMotorOffset = rightMotor.getTachoCount();
 		
 		for(int i = 1; i <= 10; i ++) {
-			
+			int isRescue = sensor.isRescue();
+			switch (isRescue) {
+			case 1:
+				//RESCUE LEFT
+				rotate(RIGHT);
+				rotate(LEFT);
+				break;
+			case 2:
+				rotate(LEFT);
+				rotate(RIGHT);
+				//RESCUE RIGHT
+			default:
+				break;
+			}
 			
 			while( ((leftMotor.getTachoCount() - leftMotorOffset) + (leftMotor.getTachoCount() - leftMotorOffset)) /2 < perTile*i) {
 				leftMotor.forward();

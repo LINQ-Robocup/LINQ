@@ -176,4 +176,15 @@ public class LQSensor {
 		RS485.hsWrite(send, 0, 1);
 		Delay.msDelay(10);
 	}
+	
+	public int isRescue() {
+		int threshold = 30;
+		if(getValue(tempLeftValue) > threshold) {
+			return 1;
+		}else if(getValue(tempRightValue) > threshold) {
+			return 2;
+		}else{
+			return 0;
+		}
+	}
 }
