@@ -300,6 +300,7 @@ public class LQMover {
 				} else {
 					leftMotor.forward();
 					rightMotor.backward();
+
 				}
 			}
 		}
