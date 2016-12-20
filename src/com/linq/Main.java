@@ -3,6 +3,7 @@ package com.linq;
 import lejos.nxt.Button;
 import lejos.nxt.LCD;
 import lejos.nxt.MotorPort;
+import lejos.nxt.Sound;
 import lejos.util.Delay;
 import lejos.util.Stopwatch;
 
@@ -24,63 +25,23 @@ public class Main
 		
 		leftMotor.stop();
 		rightMotor.stop();
-		leftMotor.setPower(35);
-		rightMotor.setPower(35);
-
-	
-		Delay.msDelay(500);
-		sensor.showAllSensors();
+		leftMotor.setPower(70);
+		rightMotor.setPower(70);
 
 		Delay.msDelay(1000);
-
-		int speed = 70;
-		mover.tileForward(speed);
+		while (!Button.ENTER.isDown()) {
+			sensor.showAllSensors();
+		}
+		sensor.blinkLED();
 		
-		mover.tileForward(speed);
-
-		mover.tileForward(speed);
-		mover.setParallel();
-		mover.setDistance();
-		mover.rotate(mover.LEFT);
+		/*
 		
-		mover.tileForward(speed);
-		mover.setParallel();
-		mover.setDistance();
-		mover.rotate(mover.LEFT);
+		int wallAvoidAngle = 200;
 		
-		mover.tileForward(speed);
-		mover.setParallel();
-		mover.setDistance();
-		mover.rotate(mover.RIGHT);
 		
-		mover.tileForward(speed);
-		mover.rotate(mover.RIGHT);
-		
-		mover.tileForward(speed);
-		mover.setParallel();
-		mover.setDistance();
-		mover.rotate(mover.LEFT);
-		
-		mover.tileForward(speed);
-		mover.setParallel();
-		mover.setDistance();
-		mover.rotate(mover.LEFT);
-		
-		mover.tileForward(speed);
-		mover.setParallel();
-		mover.setDistance();
-		mover.rotate(mover.RIGHT);
-		
-		mover.tileForward(speed);
-		mover.setParallel();
-		mover.setDistance();
-		mover.rotate(mover.RIGHT);
-		
-		mover.tileForward(speed);
-		mover.setParallel();
-		mover.setDistance();
-
-		
+		*/
+		mover.tileForward(70, false);
+		Sound.beepSequence();
 		
 		
 

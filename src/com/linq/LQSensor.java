@@ -121,10 +121,12 @@ public class LQSensor {
 			if(Button.LEFT.isDown()) {
 				if(menu > 0) {
 					menu--;
+					Delay.msDelay(250);
 				}
 			}else if(Button.RIGHT.isDown()) {
-				if(menu < 1) {
+				if(menu < 2) {
 					menu++;
+					Delay.msDelay(250);
 				}
 			}
 			if(Button.ESCAPE.isDown()) {
@@ -146,9 +148,13 @@ public class LQSensor {
 			case 1:
 				LCD.drawString("TOUCH_L", 0, 0);	LCD.drawInt(isLeftTouchPressed(), showValueOffset, 0);
 				LCD.drawString("TOUCH_R", 0, 1);	LCD.drawInt(isRightTouchPressed(), showValueOffset, 1);
-				LCD.drawString("LIGHT", 0, 2);	LCD.drawInt(light_right.getLightValue(), showValueOffset, 2);
-				LCD.drawString("GYRO", 0, 3);	LCD.drawInt(gyro.getAngle(), showValueOffset, 3);
+				LCD.drawString("LIGHT"	, 0, 2);		LCD.drawInt(light_right.getLightValue(), showValueOffset, 2);
+				LCD.drawString("GYRO"	, 0, 3);		LCD.drawInt(getGyroValue(), showValueOffset, 3);
+				LCD.drawString("ACCEL_X", 0, 4);	LCD.drawInt(getAccelXValue(), showValueOffset, 4);
+				LCD.drawString("ACCEL_Y", 0, 5);	LCD.drawInt(getAccelYValue(), showValueOffset, 5);
+				LCD.drawString("ACCEL_Z", 0, 6);	LCD.drawInt(getAccelZValue(), showValueOffset, 6);
 				break;
+				
 			default:
 				break;
 			}
@@ -158,21 +164,31 @@ public class LQSensor {
 		}
 		LCD.clear();
 	}
-	
+	public void blinkLED() {
+		send[0] = 10;
+		RS485.hsWrite(send, 0, 1);	
+	}
 	public int getGyroValue() {
 		return gyro.getAngle();
+	}
+	
+	public int getAccelXValue() {
+		return gyro.getAccel(0);
+	}
+	public int getAccelYValue() {
+		return gyro.getAccel(1);
+	}
+	public int getAccelZValue() {
+		return gyro.getAccel(2);
 	}
 	
 	public void resetGyroValue() {
 		gyro.reset();
 	}
 	
-	public void rotateServo(int angle) {
-		if(angle == 0) {
-			send[0] = 8;
-		}else{
-			send[0] = 9;
-		}
+	public void rotateServo() {
+			send[0] = 10;
+			send[0] = 10;
 		RS485.hsWrite(send, 0, 1);
 		Delay.msDelay(10);
 	}
