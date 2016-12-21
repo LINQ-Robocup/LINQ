@@ -17,21 +17,21 @@ import lejos.util.Delay;
 
 public class LQSensor {
 	
-	public final int IRDIST_FL		= 0;
-	public final int IRDIST_FR		= 1;
-	public final int IRDIST_L		= 2;
-	public final int IRDIST_R		= 3;
-	public final int TEMP_L			= 4;
-	public final int TEMP_R			= 5;
-	public final int SRDIST			= 6;
+	public final byte IRDIST_FL		= 0;
+	public final byte IRDIST_FR		= 1;
+	public final byte IRDIST_L		= 2;
+	public final byte IRDIST_R		= 3;
+	public final byte TEMP_L			= 4;
+	public final byte TEMP_R			= 5;
+	public final byte SRDIST			= 6;
 	
-	public final int TOUCH_R		= 7;
-	public final int TOUCH_L		= 8;
-	public final int LIGHT			= 9;
-	public final int GYRO			= 10;
-	public final int ACCEL_X		= 11;
-	public final int ACCEL_Y		= 12;
-	public final int ACCEL_Z		= 13;
+	public final byte TOUCH_R		= 7;
+	public final byte TOUCH_L		= 8;
+	public final byte LIGHT			= 9;
+	public final byte GYRO			= 10;
+	public final byte ACCEL_X		= 11;
+	public final byte ACCEL_Y		= 12;
+	public final byte ACCEL_Z		= 13;
 	
 	public int irDistFRightValue;
 	public int irDistRightValue;
@@ -83,7 +83,7 @@ public class LQSensor {
 		Delay.msDelay(10);
 		
 	}
-	public int getValue(int sensor) {
+	public int getValue(byte sensor) {
 		readAllSensors();
 		switch (sensor) {
 		case IRDIST_R:
@@ -117,8 +117,8 @@ public class LQSensor {
 		return light_right.getLightValue() > 90 ? 1 : 0;
 	}
 	public void showAllSensors() {
-		int showValueOffset = 10;
-		int menu = 0;
+		byte showValueOffset = 10;
+		byte menu = 0;
 		resetGyroValue();
 		while (!Button.ENTER.isDown()) {
 			if(Button.LEFT.isDown()) {
@@ -151,8 +151,8 @@ public class LQSensor {
 			case 1:
 				LCD.drawString("TOUCH_L", 0, 0);	LCD.drawInt(isLeftTouchPressed(), showValueOffset, 0);
 				LCD.drawString("TOUCH_R", 0, 1);	LCD.drawInt(isRightTouchPressed(), showValueOffset, 1);
-				LCD.drawString("LIGHT"	, 0, 2);		LCD.drawInt(light_right.getLightValue(), showValueOffset, 2);
-				LCD.drawString("GYRO"	, 0, 3);		LCD.drawInt(getGyroValue(), showValueOffset, 3);
+				LCD.drawString("LIGHT"	, 0, 2);	LCD.drawInt(light_right.getLightValue(), showValueOffset, 2);
+				LCD.drawString("GYRO"	, 0, 3);	LCD.drawInt(getGyroValue(), showValueOffset, 3);
 				LCD.drawString("ACCEL_X", 0, 4);	LCD.drawInt(getAccelXValue(), showValueOffset, 4);
 				LCD.drawString("ACCEL_Y", 0, 5);	LCD.drawInt(getAccelYValue(), showValueOffset, 5);
 				LCD.drawString("ACCEL_Z", 0, 6);	LCD.drawInt(getAccelZValue(), showValueOffset, 6);
@@ -236,17 +236,6 @@ public class LQSensor {
 			send[0] = 19;
 			RS485.hsWrite(send, 0, 1);
 			Delay.msDelay(10);
-		}
-	}
-	
-	public int isRescue() {
-		int threshold = 30;
-		if(getValue(tempLeftValue) > threshold) {
-			return 1;
-		}else if(getValue(tempRightValue) > threshold) {
-			return 2;
-		}else{
-			return 0;
 		}
 	}
 	

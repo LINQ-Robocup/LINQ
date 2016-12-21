@@ -24,17 +24,17 @@ public class LQMover {
 	static final int tileTacho = 690;
 	
 	//äeéÌìÆçÏÇ…Ç®ÇØÇÈï˚å¸ä«óùóp
-	public final int LEFT	= 0;
-	public final int RIGHT	= 1;
-	public final int FRONT	= 2;
-	public final int BEHIND	= 3;
+	public final byte LEFT	= 0;
+	public final byte RIGHT	= 1;
+	public final byte FRONT	= 2;
+	public final byte BEHIND	= 3;
 	
 	//è∞ÇÃêFä«óù
-	public final int WHITE	= 0;
-	public final int BLACK	= 1;
-	public final int RAMP	= 2;
-	public final int SILVER	= 3;
-	public final int VICTIM	= 4;
+	public final byte WHITE	= 0;
+	public final byte BLACK	= 1;
+	public final byte RAMP	= 2;
+	public final byte SILVER	= 3;
+	public final byte VICTIM	= 4;
 	
 	public LQMover(TachoMotorPort left, TachoMotorPort right) {
 		//Create Instances
@@ -210,10 +210,10 @@ public class LQMover {
 		long rightMotorOffset = rightMotor.getTachoCount();
 		
 		int rotation = 0;
-		int slopeCount = 0;
-		int blackCount = 0;
-		int tempLeftCount = 0;
-		int tempRightCount = 0;
+		byte slopeCount = 0;
+		byte blackCount = 0;
+		byte tempLeftCount = 0;
+		byte tempRightCount = 0;
 		int tempThreshold = 30;
 		
 		leftMotor.stop();
@@ -329,7 +329,7 @@ public class LQMover {
 		}
 		/* silver */
 		int silverThreshold = 30;
-		int silverCount = 0;
+		byte silverCount = 0;
 		for (int i = 0; i < 3; i++) {
 			if (sensor.getLightValue() > silverThreshold) {
 				silverCount++;
