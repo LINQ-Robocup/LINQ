@@ -1,15 +1,10 @@
 package com.linq;
 
-import javax.microedition.sensor.GyroChannelInfo;
-
 import lejos.nxt.Button;
 import lejos.nxt.LCD;
-import lejos.nxt.LegacySensorPort;
 import lejos.nxt.MotorPort;
 import lejos.nxt.NXTMotor;
 import lejos.nxt.SensorPort;
-import lejos.nxt.Sound;
-import lejos.nxt.TouchSensor;
 import lejos.nxt.addon.CruizcoreGyro;
 import lejos.nxt.addon.RCXLightSensor;
 import lejos.nxt.comm.RS485;
@@ -41,14 +36,13 @@ public class LQSensor {
 	public int tempLeftValue;
 	public int srValue;
 
-	private byte send[] = new byte[2];
-	private byte get[] = new byte[7];
-	
 	public RCXLightSensor light_left;
 	public RCXLightSensor light_right;	//light sensor
-
 	public CruizcoreGyro gyro;
 	private NXTMotor servo;
+	
+	private byte send[] = new byte[2];
+	private byte get[] = new byte[7];
 	
 	public LQSensor() {
 		RS485.hsEnable(9600, 0);
@@ -82,39 +76,6 @@ public class LQSensor {
 		srValue				= get[6];
 		Delay.msDelay(10);
 		
-	}
-	public int getValue(byte sensor) {
-		readAllSensors();
-		switch (sensor) {
-		case IRDIST_R:
-			return irDistRightValue;
-		case IRDIST_FR:
-			return irDistFRightValue;
-		case IRDIST_L:
-			return irDistLeftValue;
-		case IRDIST_FL:
-			return irDistFLeftValue;
-		case GYRO:
-			return gyro.getAngle();
-		case TEMP_L:
-			return tempLeftValue;
-		case TEMP_R:
-			return tempRightValue;
-		default:
-			break;
-		}
-		
-		return -1;
-	}
-	public int getLightValue() {
-		return light_right.getLightValue();
-	}
-	public int isLeftTouchPressed() {
-		return light_left.getLightValue() > 90 ? 1 : 0;
-	}
-
-	public int isRightTouchPressed() {
-		return light_right.getLightValue() > 90 ? 1 : 0;
 	}
 	public void showAllSensors() {
 		byte showValueOffset = 10;
@@ -167,15 +128,46 @@ public class LQSensor {
 		}
 		LCD.clear();
 	}
-	public void blinkLED() {
-		send[0] = 10;
-		RS485.hsWrite(send, 0, 1);	
-		Delay.msDelay(5000);
+	public int getValue(byte sensor) {
+		readAllSensors();
+		switch (sensor) {
+		case IRDIST_R:
+			return irDistRightValue;
+		case IRDIST_FR:
+			return irDistFRightValue;
+		case IRDIST_L:
+			return irDistLeftValue;
+		case IRDIST_FL:
+			return irDistFLeftValue;
+		case GYRO:
+			return gyro.getAngle();
+		case TEMP_L:
+			return tempLeftValue;
+		case TEMP_R:
+			return tempRightValue;
+		default:
+			break;
+		}
+		
+		return -1;
+	}
+	public int getLightValue() {
+		return light_right.getLightValue();
+	}
+	public int isLeftTouchPressed() {
+		return light_left.getLightValue() > 90 ? 1 : 0;
+	}
+
+	public int isRightTouchPressed() {
+		return light_right.getLightValue() > 90 ? 1 : 0;
 	}
 	public int getGyroValue() {
 		return gyro.getAngle();
 	}
 	
+	public void resetGyroValue() {
+		gyro.reset();
+	}
 	public int getAccelXValue() {
 		return gyro.getAccel(0);
 	}
@@ -186,17 +178,37 @@ public class LQSensor {
 		return gyro.getAccel(2);
 	}
 	
-	public void resetGyroValue() {
-		gyro.reset();
+	public boolean isWallLeft() {
+		int threshold = 30;
+		if(getValue(IRDIST_L) < threshold) {
+			return true;
+		}else{
+			return false;
+		}
 	}
-	
-	public void servoRight() {
-		send[0] = 11;
-		RS485.hsWrite(send, 0, 1);
-		Delay.msDelay(1000);
+	public boolean isWallRight() {
+		int threshold = 30;
+		if(getValue(IRDIST_R) < threshold) {
+			return true;
+		}else{
+			return false;
+		}
+	}
+	public boolean isWallFront() {
+		int threshold = 30;
+		if(getValue(SRDIST) < threshold) {
+			return true;
+		}else{
+			return false;
+		}
 	}
 	public void servoLeft() {
 		send[0] = 12;
+		RS485.hsWrite(send, 0, 1);
+		Delay.msDelay(1000);
+	}
+	public void servoRight() {
+		send[0] = 11;
 		RS485.hsWrite(send, 0, 1);
 		Delay.msDelay(1000);
 	}
@@ -238,29 +250,9 @@ public class LQSensor {
 			Delay.msDelay(10);
 		}
 	}
-	
-	public boolean isWallRight() {
-		int threshold = 30;
-		if(getValue(IRDIST_R) < threshold) {
-			return true;
-		}else{
-			return false;
-		}
-	}
-	public boolean isWallLeft() {
-		int threshold = 30;
-		if(getValue(IRDIST_L) < threshold) {
-			return true;
-		}else{
-			return false;
-		}
-	}
-	public boolean isWallFront() {
-		int threshold = 30;
-		if(getValue(SRDIST) < threshold) {
-			return true;
-		}else{
-			return false;
-		}
+	public void blinkLED() {
+		send[0] = 10;
+		RS485.hsWrite(send, 0, 1);	
+		Delay.msDelay(5000);
 	}
 }
