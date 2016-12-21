@@ -16,9 +16,9 @@ public class LQSensor {
 	public final byte IRDIST_FR		= 1;
 	public final byte IRDIST_L		= 2;
 	public final byte IRDIST_R		= 3;
-	public final byte TEMP_L			= 4;
-	public final byte TEMP_R			= 5;
-	public final byte SRDIST			= 6;
+	public final byte TEMP_L		= 4;
+	public final byte TEMP_R		= 5;
+	public final byte SRDIST		= 6;
 	
 	public final byte TOUCH_R		= 7;
 	public final byte TOUCH_L		= 8;
