@@ -2,7 +2,9 @@ package com.linq;
 
 import java.lang.Math;
 
+import lejos.nxt.Button;
 import lejos.nxt.LCD;
+import lejos.nxt.Sound;
 import lejos.nxt.TachoMotorPort;
 import lejos.util.Delay;
 
@@ -26,6 +28,13 @@ public class LQMover {
 	public final int RIGHT	= 1;
 	public final int FRONT	= 2;
 	public final int BEHIND	= 3;
+	
+	//è∞ÇÃêFä«óù
+	public final int WHITE	= 0;
+	public final int BLACK	= 1;
+	public final int RAMP	= 2;
+	public final int SILVER	= 3;
+	public final int VICTIM	= 4;
 	
 	public LQMover(TachoMotorPort left, TachoMotorPort right) {
 		//Create Instances
@@ -169,10 +178,31 @@ public class LQMover {
 			}
 		}
 	}
-	public void tileForward(int speed, boolean pass) {
+	
+	int slopeOffset = -300;
+	public void climbSlope(int speed) {
 		leftMotor.setPower(speed);
 		rightMotor.setPower(speed);
-		int wallDistOffset = 25;
+		int slopeCount = 0;
+		while (slopeCount < 10) {
+			if(sensor.getAccelYValue() > slopeOffset) {
+				slopeCount++;
+			}else if(sensor.getAccelYValue() < slopeOffset) {
+				slopeCount = 0;
+			}
+			leftMotor.forward();
+			rightMotor.forward();
+		}
+		leftMotor.stop();
+		rightMotor.stop();
+		setParallel(50);
+		setDistance(50);
+	}
+	public int tileForward(int speed, boolean pass) {
+		leftMotor.setPower(speed);
+		rightMotor.setPower(speed);
+		offset = 0;
+		int wallDistThreshold = 80;
 		int perTile = tileTacho / 10;
 		leftMotor.resetTachoCount();
 		rightMotor.resetTachoCount();
@@ -180,9 +210,90 @@ public class LQMover {
 		long rightMotorOffset = rightMotor.getTachoCount();
 		
 		int rotation = 0;
+		int slopeCount = 0;
+		int blackCount = 0;
+		int tempLeftCount = 0;
+		int tempRightCount = 0;
+		int tempThreshold = 30;
+		
+		leftMotor.stop();
+		rightMotor.stop();
+		leftMotor.resetTachoCount();
+		rightMotor.resetTachoCount();
+		sensor.resetGyroValue();
 		for(int i = 1; i <= 10; i ++) {
 			sensor.readAllSensors();
 			sensor.getGyroValue();
+			
+			/* black */
+			if(sensor.getLightValue() < 20) {
+				blackCount++;
+				if(blackCount > 3) {
+					while (leftMotor.getTachoCount() > 0) {
+						leftMotor.backward();
+						rightMotor.backward();
+					}
+					leftMotor.stop();
+					rightMotor.stop();
+					return BLACK;
+				}
+			}else{
+				blackCount = 0;
+			}
+			
+			/* rescue */
+			if(pass == false && i > 1 && i < 10) {
+				//left
+				if(sensor.irDistLeftValue < wallDistThreshold && sensor.tempLeftValue > tempThreshold) {
+					tempLeftCount++;
+					if(tempLeftCount > 0) {
+						int gyroValue = sensor.getGyroValue();
+						rotate(gyroValue + 9000, true);
+						leftMotor.setPower(speed);
+						rightMotor.setPower(speed);
+						leftMotor.stop();
+						rightMotor.stop();
+
+						sensor.servoRight();
+						sensor.blinkLED();
+						
+						rotate(gyroValue, true);
+						leftMotor.setPower(speed);
+						rightMotor.setPower(speed);
+						leftMotor.stop();
+						rightMotor.stop();
+
+						pass = true;
+					}
+				}else{
+					tempLeftCount = 0;
+				}
+				//right
+				if(sensor.irDistRightValue < wallDistThreshold && sensor.tempRightValue > tempThreshold) {
+					tempRightCount++;
+					if(tempRightCount > 0) {
+						int gyroValue = sensor.getGyroValue();
+						rotate(gyroValue - 9000, true);
+						leftMotor.setPower(speed);
+						rightMotor.setPower(speed);
+						leftMotor.stop();
+						rightMotor.stop();
+
+						sensor.servoLeft();
+						sensor.blinkLED();
+						
+						rotate(gyroValue, true);
+						leftMotor.setPower(speed);
+						rightMotor.setPower(speed);
+						leftMotor.stop();
+						rightMotor.stop();
+						pass = true;
+					}
+				}else{
+					tempRightCount = 0;
+				}
+			}
+			
 			/* forward 30cm */
 			while(rotation < perTile*i) {
 				rotation = (int) ((leftMotor.getTachoCount() - leftMotorOffset + rightMotor.getTachoCount() - rightMotorOffset) /2);
@@ -196,11 +307,41 @@ public class LQMover {
 				leftMotor.forward();
 				rightMotor.forward();
 			}
-			
 		}
 		leftMotor.stop();
 		rightMotor.stop();
 		Delay.msDelay(500);
+		/* ramp */
+		for (int i = 0; i < 2; i++) {
+			if(sensor.getAccelYValue() < slopeOffset) {
+				slopeCount++;
+				if(slopeCount >= 2) {
+//					climbSlope(speed);
+					while (!Button.ENTER.isDown()) {
+						LCD.clear();
+						LCD.drawString("RAMP", 5, 5);
+					}
+					return RAMP;
+				}
+			}else{
+				break;
+			}
+		}
+		/* silver */
+		int silverThreshold = 30;
+		int silverCount = 0;
+		for (int i = 0; i < 3; i++) {
+			if (sensor.getLightValue() > silverThreshold) {
+				silverCount++;
+				if(silverCount == 3) {
+					return SILVER;
+				}
+			}else {
+				break;
+			}
+		}
+		offset = offset - sensor.getGyroValue();
+		return WHITE;
 	}
 
 	/**

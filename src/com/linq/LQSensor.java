@@ -8,6 +8,7 @@ import lejos.nxt.LegacySensorPort;
 import lejos.nxt.MotorPort;
 import lejos.nxt.NXTMotor;
 import lejos.nxt.SensorPort;
+import lejos.nxt.Sound;
 import lejos.nxt.TouchSensor;
 import lejos.nxt.addon.CruizcoreGyro;
 import lejos.nxt.addon.RCXLightSensor;
@@ -63,6 +64,10 @@ public class LQSensor {
 		servo = new NXTMotor(MotorPort.C);
 		servo.setPower(100);
 		servo.forward();
+		
+		ledGreen(false);
+		ledYellow(false);
+		ledRed(false);
 	}
 	public void readAllSensors() {
 		send[0] = 1;
@@ -76,6 +81,7 @@ public class LQSensor {
 		tempLeftValue		= get[5];
 		srValue				= get[6];
 		Delay.msDelay(10);
+		
 	}
 	public int getValue(int sensor) {
 		readAllSensors();
@@ -88,12 +94,6 @@ public class LQSensor {
 			return irDistLeftValue;
 		case IRDIST_FL:
 			return irDistFLeftValue;
-		case TOUCH_R:
-			return light_right.getLightValue() > 90 ? 1 : 0;
-		case TOUCH_L:
-			return light_left.getLightValue() > 90 ? 1 : 0;
-		case LIGHT:
-			return light_right.getLightValue();
 		case GYRO:
 			return gyro.getAngle();
 		case TEMP_L:
@@ -106,6 +106,9 @@ public class LQSensor {
 		
 		return -1;
 	}
+	public int getLightValue() {
+		return light_right.getLightValue();
+	}
 	public int isLeftTouchPressed() {
 		return light_left.getLightValue() > 90 ? 1 : 0;
 	}
@@ -116,7 +119,7 @@ public class LQSensor {
 	public void showAllSensors() {
 		int showValueOffset = 10;
 		int menu = 0;
-		
+		resetGyroValue();
 		while (!Button.ENTER.isDown()) {
 			if(Button.LEFT.isDown()) {
 				if(menu > 0) {
@@ -167,6 +170,7 @@ public class LQSensor {
 	public void blinkLED() {
 		send[0] = 10;
 		RS485.hsWrite(send, 0, 1);	
+		Delay.msDelay(5000);
 	}
 	public int getGyroValue() {
 		return gyro.getAngle();
@@ -186,11 +190,53 @@ public class LQSensor {
 		gyro.reset();
 	}
 	
-	public void rotateServo() {
-			send[0] = 10;
-			send[0] = 10;
+	public void servoRight() {
+		send[0] = 11;
+		RS485.hsWrite(send, 0, 1);
+		Delay.msDelay(1000);
+	}
+	public void servoLeft() {
+		send[0] = 12;
+		RS485.hsWrite(send, 0, 1);
+		Delay.msDelay(1000);
+	}
+	public void resetServo() {
+		send[0] = 13;
 		RS485.hsWrite(send, 0, 1);
 		Delay.msDelay(10);
+	}
+	public void ledGreen(boolean toggle) {
+		if(toggle) {
+			send[0] = 14;
+			RS485.hsWrite(send, 0, 1);
+			Delay.msDelay(10);
+		}else{
+			send[0] = 15;
+			RS485.hsWrite(send, 0, 1);
+			Delay.msDelay(10);
+		}
+	}
+	public void ledYellow(boolean toggle) {
+		if(toggle) {
+			send[0] = 16;
+			RS485.hsWrite(send, 0, 1);
+			Delay.msDelay(10);
+		}else{
+			send[0] = 17;
+			RS485.hsWrite(send, 0, 1);
+			Delay.msDelay(10);
+		}
+	}
+	public void ledRed(boolean toggle) {
+		if(toggle) {
+			send[0] = 18;
+			RS485.hsWrite(send, 0, 1);
+			Delay.msDelay(10);
+		}else{
+			send[0] = 19;
+			RS485.hsWrite(send, 0, 1);
+			Delay.msDelay(10);
+		}
 	}
 	
 	public int isRescue() {
@@ -220,17 +266,9 @@ public class LQSensor {
 			return 0;
 		}
 	}
-	public int isWallFrontRight() {
+	public int isWallFront() {
 		int threshold = 30;
-		if(getValue(IRDIST_FR) < threshold) {
-			return 1;
-		}else{
-			return 0;
-		}
-	}
-	public int isWallFrontLeft() {
-		int threshold = 30;
-		if(getValue(IRDIST_FL) < threshold) {
+		if(getValue(SRDIST) < threshold) {
 			return 1;
 		}else{
 			return 0;
