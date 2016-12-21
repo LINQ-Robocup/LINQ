@@ -24,15 +24,15 @@ public class LQMover {
 	static final int tileTacho = 690;
 	
 	//äeéÌìÆçÏÇ…Ç®ÇØÇÈï˚å¸ä«óùóp
-	public final byte LEFT	= 0;
-	public final byte RIGHT	= 1;
-	public final byte FRONT	= 2;
+	public final byte LEFT		= 0;
+	public final byte RIGHT		= 1;
+	public final byte FRONT		= 2;
 	public final byte BEHIND	= 3;
 	
 	//è∞ÇÃêFä«óù
-	public final byte WHITE	= 0;
-	public final byte BLACK	= 1;
-	public final byte RAMP	= 2;
+	public final byte WHITE		= 0;
+	public final byte BLACK		= 1;
+	public final byte RAMP		= 2;
 	public final byte SILVER	= 3;
 	public final byte VICTIM	= 4;
 	
@@ -179,19 +179,43 @@ public class LQMover {
 		}
 	}
 	
-	int slopeOffset = -300;
-	public void climbSlope(int speed) {
+	public void climbRamp(int speed) {
+		int flatThreshold = -50;
 		leftMotor.setPower(speed);
 		rightMotor.setPower(speed);
-		int slopeCount = 0;
-		while (slopeCount < 10) {
-			if(sensor.getAccelYValue() > slopeOffset) {
-				slopeCount++;
-			}else if(sensor.getAccelYValue() < slopeOffset) {
-				slopeCount = 0;
+		int rampCount = 0;
+		while (true) {
+			if(sensor.getAccelYValue() > flatThreshold) {
+				rampCount++;
+				if(rampCount > 20) {
+					break;
+				}
+			}else{
+				rampCount = 0;
 			}
 			leftMotor.forward();
 			rightMotor.forward();
+		}
+		leftMotor.stop();
+		rightMotor.stop();
+		setParallel(50);
+		setDistance(50);
+	}
+	
+	public void downRamp(int speed) {
+		int flatThreshold = 50;
+		leftMotor.setPower(speed);
+		rightMotor.setPower(speed);
+		int rampCount = 0;
+		while (true) {
+			if(sensor.getAccelYValue() < flatThreshold) {
+				rampCount++;
+				if(rampCount > 20) {
+					break;
+				}
+			}else{
+				rampCount = 0;
+			}
 		}
 		leftMotor.stop();
 		rightMotor.stop();
@@ -215,6 +239,7 @@ public class LQMover {
 		byte tempLeftCount = 0;
 		byte tempRightCount = 0;
 		int tempThreshold = 30;
+		int rampThreshold = -300;
 		
 		leftMotor.stop();
 		rightMotor.stop();
@@ -313,10 +338,10 @@ public class LQMover {
 		Delay.msDelay(500);
 		/* ramp */
 		for (int i = 0; i < 2; i++) {
-			if(sensor.getAccelYValue() < slopeOffset) {
+			if(sensor.getAccelYValue() < rampThreshold) {
 				slopeCount++;
 				if(slopeCount >= 2) {
-//					climbSlope(speed);
+//					climbRamp(speed);
 					while (!Button.ENTER.isDown()) {
 						LCD.clear();
 						LCD.drawString("RAMP", 5, 5);
@@ -329,9 +354,10 @@ public class LQMover {
 		}
 		/* silver */
 		int silverThreshold = 30;
+		int silverMaxThreshold = 60;
 		byte silverCount = 0;
 		for (int i = 0; i < 3; i++) {
-			if (sensor.getLightValue() > silverThreshold) {
+			if (sensor.getLightValue() > silverThreshold && sensor.getLightValue() < silverMaxThreshold) {
 				silverCount++;
 				if(silverCount == 3) {
 					return SILVER;
