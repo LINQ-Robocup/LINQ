@@ -250,28 +250,28 @@ public class LQSensor {
 		}
 	}
 	
-	public int isWallRight() {
+	public boolean isWallRight() {
 		int threshold = 30;
 		if(getValue(IRDIST_R) < threshold) {
-			return 1;
+			return true;
 		}else{
-			return 0;
+			return false;
 		}
 	}
-	public int isWallLeft() {
+	public boolean isWallLeft() {
 		int threshold = 30;
 		if(getValue(IRDIST_L) < threshold) {
-			return 1;
+			return true;
 		}else{
-			return 0;
+			return false;
 		}
 	}
-	public int isWallFront() {
+	public boolean isWallFront() {
 		int threshold = 30;
 		if(getValue(SRDIST) < threshold) {
-			return 1;
+			return true;
 		}else{
-			return 0;
+			return false;
 		}
 	}
 }
