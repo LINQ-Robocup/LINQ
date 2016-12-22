@@ -225,6 +225,7 @@ public class LQMover {
 	public int tileForward(int speed, boolean pass) {
 		leftMotor.setPower(speed);
 		rightMotor.setPower(speed);
+		if(pass == false) sensor.ledGreen(true);
 		offset = 0;
 		int wallDistThreshold = 80;
 		int perTile = tileTacho / 10;
@@ -279,8 +280,8 @@ public class LQMover {
 						leftMotor.stop();
 						rightMotor.stop();
 
-						sensor.servoRight();
 						sensor.blinkLED();
+						sensor.servoRight();
 						
 						rotate(gyroValue, true);
 						leftMotor.setPower(speed);
@@ -367,6 +368,7 @@ public class LQMover {
 			}
 		}
 		offset = offset - sensor.getGyroValue();
+		sensor.ledGreen(false);
 		return WHITE;
 	}
 
