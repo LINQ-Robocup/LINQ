@@ -206,6 +206,7 @@ public class LQSensor {
 	public boolean isWallFront() {
 		int threshold = 20;
 //		if(getValue(SRDIST) < threshold) {
+		readAllSensors();
 		if(srValue < threshold) {
 			return true;
 		}else{
