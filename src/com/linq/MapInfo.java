@@ -1,7 +1,10 @@
 package com.linq;
 
 import java.io.*;
+
 import lejos.nxt.*;
+import lejos.util.Delay;
+
 import javax.microedition.lcdui.Graphics;
 
 public class MapInfo {
@@ -9,8 +12,8 @@ public class MapInfo {
 	//　部屋の数(坂で接続された部屋の最大数)
 	public static final byte ROOM 	= 2;
 	// 1部屋のサイズ(縦・横)
-	public static final byte HEIGHT 	= (5) * 2 + 1;
-	public static final byte WIDTH  	= (9) * 2 + 1;
+	public static final byte HEIGHT = 5 * 2 + 1;
+	public static final byte WIDTH  = 9 * 2 + 1;
 	// マップ値
 	public final byte WALL 	= 1;
 	public final byte PASS 	= 2;
@@ -42,7 +45,7 @@ public class MapInfo {
 		final byte INITIAL_DIREC = 0;
 	  /* 変数宣言 */
 		// 現在位置(XY座標, 部屋, 方向)
-		byte x, y, room, direc;
+		byte x = 1, y = 1, room = 0, direc = 0;
 		
 		// コンストラクタ(初期位置設定)
 		CurrentPosition() {
@@ -78,8 +81,21 @@ public class MapInfo {
 		}
 		
 		public void changePos() {
-			x += X_D[direc];
-			y += Y_D[direc]; 
+			switch(direc) {
+				case 0:
+					curPos.y += 2; 
+					break;
+				case 1:
+					curPos.x += 2;
+					break;
+				case 2:
+					curPos.y -= 2;
+					break;
+				case 3:
+					curPos.x -= 2;
+					break;
+				default:
+			}
 		}
 		
 		public void resetPosition() {
@@ -90,7 +106,22 @@ public class MapInfo {
 		}
 		
 		void setFrontPass() {
-			map[room][y+Y_D[direc]][x+X_D[direc]] = PASS;
+			switch(direc) {
+				case 0:
+					map[room][y+1][x] = PASS;
+					break;
+				case 1:
+					map[room][y][x+1] = PASS;
+					break;
+				case 2:
+					map[room][y-1][x] = PASS;
+					break;
+				case 3:
+					map[room][y][x-1] = PASS;
+					break;
+				default:
+			}
+//			map[room][y+Y_D[direc]][x+X_D[direc]] = PASS;
 		}
 		
 		boolean isPassedThrough() {
@@ -102,35 +133,119 @@ public class MapInfo {
 		}
 		
 		byte getWallFront() {
-			return map[room][y+Y_D[direc]][x+X_D[direc]];
+			switch(direc) {
+				case 0:
+					return map[room][y+1][x];
+				case 1:
+					return map[room][y][x+1];
+				case 2:
+					return map[room][y-1][x];
+				case 3:
+					return map[room][y][x-1];
+				default:
+			}
+			return WALL;
 		}
 		
 		byte getWallRight() {
-			return map[room][y+Y_D[(direc+1)%4]][x+X_D[(direc+1%4)]];
+			switch(direc) {
+				case 0:
+					return map[room][y][x+1];
+				case 1:
+					return map[room][y-1][x];
+				case 2:
+					return map[room][y][x-1];
+				case 3:
+					return map[room][y+1][x];
+				default:
+			}
+			return WALL;
 		}
 		
 		byte getWallLeft() {
-			return map[room][y+Y_D[(direc+3)%4]][x+X_D[(direc+3%4)]];
+			switch(direc) {
+				case 0:
+					return map[room][y][x-1];
+				case 1:
+					return map[room][y+1][x];
+				case 2:
+					return map[room][y][x+1];
+				case 3:
+					return map[room][y-1][x];
+				default:
+			}
+			return WALL;
 		}
 		
 		byte getWallBack() {
-			return map[room][y+Y_D[(direc+2)%4]][x+X_D[(direc+2%4)]];
+			switch(direc) {
+				case 0:
+					return map[room][y-1][x];
+				case 1:
+					return map[room][y][x-1];
+				case 2:
+					return map[room][y+1][x];
+				case 3:
+					return map[room][y][x+1];
+				default:
+			}
+			return WALL;
 		}
 		
 		void setWallFront(byte info) {
-			map[room][y+Y_D[direc]][x+X_D[direc]] = info;
+			switch(direc) {
+				case 0:
+					map[room][y+1][x] = info;
+				case 1:
+					map[room][y][x+1] = info;
+				case 2:
+					map[room][y-1][x] = info;
+				case 3:
+					map[room][y][x-1] = info;
+				default:
+			}
 		}
 		
 		void setWallRight(byte info) {
-			map[room][y+Y_D[(direc+1)%4]][x+X_D[(direc+1%4)]] = info;
+			switch(direc) {
+				case 0:
+					map[room][y][x+1] = info;
+				case 1:
+					map[room][y-1][x] = info;
+				case 2:
+					map[room][y][x-1] = info;
+				case 3:
+					map[room][y+1][x] = info;
+				default:
+			}
 		}
 		
 		void setWallLeft(byte info) {
-			map[room][y+Y_D[(direc+3)%4]][x+X_D[(direc+3%4)]] = info;
+			switch(direc) {
+				case 0:
+					map[room][y][x-1] = info;
+				case 1:
+					map[room][y+1][x] = info;
+				case 2:
+					map[room][y][x-1] = info;
+				case 3:
+					map[room][y-1][x] = info;
+				default:
+			}
 		}
 		
 		void setWallBack(byte info) {
-			map[room][y+Y_D[(direc+2)%4]][x+X_D[(direc+2%4)]] = info;
+			switch(direc) {
+				case 0:
+					map[room][y-1][x] = info;
+				case 1:
+					map[room][y][x-1] = info;
+				case 2:
+					map[room][y+1][x] = info;
+				case 3:
+					map[room][y][x+1] = info;
+				default:
+			}
 		}
 		
 		void setFrontBlack() {
@@ -161,6 +276,12 @@ public class MapInfo {
 		
 		//コンストラクタ(初期位置設定)
 		DoorwayPosition() {
+			this.ent_x = this.ext_x = INITIAL_X;
+			this.ent_y = this.ext_y = INITIAL_Y;
+			this.ent_direc = this.ext_direc = INITIAL_DIREC;
+		}
+		
+		void reset() {
 			this.ent_x = this.ext_x = INITIAL_X;
 			this.ent_y = this.ext_y = INITIAL_Y;
 			this.ent_direc = this.ext_direc = INITIAL_DIREC;
@@ -208,6 +329,7 @@ public class MapInfo {
 		for(byte i = 0; i < ROOM; i++) {
 			for(byte j = 0; j < HEIGHT; j++) {
 				for(byte k = 0; k < WIDTH; k++) {
+					map[i][j][k] = 0;
 					if(j % 2 == 0 && k % 2 == 0) {
 						//頂点はWALLとして初期化
 						map[i][j][k] = WALL;
@@ -227,7 +349,7 @@ public class MapInfo {
 	public void arrangeMap() {
 		/* 横シフト　(X座標の0と末端がUNKOWNの場合) */
 		for(byte i = 0; i < HEIGHT; i++) {
-			if(map[curPos.room][i][0] == PASS) {
+			if(map[curPos.room][i][0] == FLAG) {
 				//右シフト 
 				for(byte j = 0; j < HEIGHT; j++) {
 					for(byte k = WIDTH-1; k > 1; k--) {
@@ -236,11 +358,11 @@ public class MapInfo {
 					map[curPos.room][j][0] = UNKNOWN;
 					map[curPos.room][j][1] = UNKNOWN;
 				}
-				curPos.shiftX(true);
-				doorway[curPos.room].shiftX(true);
+				//curPos.shiftX(true);
+				//doorway[curPos.room].shiftX(true);
 				break;
 			}
-			if(map[curPos.room][i][WIDTH-1] == PASS) {
+			if(map[curPos.room][i][WIDTH-1] == FLAG) {
 				//左シフト
 				for(byte j = 0; j < HEIGHT; j++) {
 					for(byte k = 0; k < WIDTH-2; k++) {
@@ -250,13 +372,13 @@ public class MapInfo {
 					map[curPos.room][j][WIDTH-2] = UNKNOWN;
 				}
 				curPos.shiftX(false);
-				doorway[curPos.room].shiftX(false);
+				//doorway[curPos.room].shiftX(false);
 				break;
 			}
 		}
 		/* 縦シフト (Y座標の0と末端がUNKOWNの場合)*/
 		for(byte i = 0; i < WIDTH; i++) {
-			if(map[curPos.room][HEIGHT-1][i] == PASS) {
+			if(map[curPos.room][HEIGHT-1][i] == FLAG) {
 				//上シフト
 				for(byte j = 0; j < WIDTH; j++) {
 					for(byte k = 0; k < HEIGHT-2; k++) {
@@ -266,10 +388,10 @@ public class MapInfo {
 					map[curPos.room][HEIGHT-2][j] = UNKNOWN;
 				}
 				curPos.shiftY(true);
-				doorway[curPos.room].shiftY(true);
+				//doorway[curPos.room].shiftY(true);
 				break;
 			}
-			if(map[curPos.room][0][i] == PASS) {
+			if(map[curPos.room][0][i] == FLAG) {
 				//下シフト
 				for(byte j = 0; j < WIDTH; j++) {
 					for(byte k = HEIGHT-1; k > 1; k--) {
@@ -279,7 +401,7 @@ public class MapInfo {
 					map[curPos.room][1][j] = UNKNOWN;
 				}
 				curPos.shiftY(false);
-				doorway[curPos.room].shiftY(false);
+				//doorway[curPos.room].shiftY(false);
 				break;
 			}
 		}
@@ -492,8 +614,8 @@ public class MapInfo {
 	 */
 	public void dispMapInfo() {
 		LCD.clear();
-		dispMap();
-		dispPosition();
+		//dispMap();
+		//dispPosition();
 	}
 	
 	/**
@@ -520,20 +642,22 @@ public class MapInfo {
 			}
 		}
 		/* タイル描画 */
-		for(byte i = 0; i < TILE_HEIGHT; i++) {
-		    for(byte j = 0; j < TILE_WIDTH; j++) {
-		    	if(map[curPos.room][i*2+1][j*2+1] == WALL) {
-		    		/* 黒タイルの描画 */
-		    		for(byte k = 2; k <= 8; k ++) {
-		    			g.drawLine(i * 10 + 2, j * 10 + k, j * 10 + 8, i * 10 + k);
-		    		}
-		    	} else if(map[curPos.room][j*2+1][i*2+1] == UNKNOWN && !(i*2+1 == curPos.x && j*2+1 == curPos.y)) {
-		    		/* バツ印の描画 */
-		    		g.drawLine(j * 10 + 4, i * 10 + 6, j * 10 + 6, i * 10 + 4);
-		    		g.drawLine(j * 10 + 4, i * 10 + 4, j * 10 + 6, i * 10 + 6);
-		    	}
-		    }
-		}
+//		for(byte i = 0; i < TILE_HEIGHT; i++) {
+//		    for(byte j = 0; j < TILE_WIDTH; j++) {
+//		    	if(map[curPos.room][i*2+1][j*2+1] == WALL) {
+//		    		/* 黒タイルの描画 */
+//		    		/*
+//		    		for(byte k = 2; k <= 8; k ++) {
+//		    			g.drawLine(i * 10 + 2, j * 10 + k, j * 10 + 8, i * 10 + k);
+//		    		}
+//		    		*/
+//		    	} else if(map[curPos.room][j*2+1][i*2+1] == UNKNOWN && !(i*2+1 == curPos.x && j*2+1 == curPos.y)) {
+//		    		/* バツ印の描画 */
+//		    		g.drawLine(j * 10 + 4, i * 10 + 6, j * 10 + 6, i * 10 + 4);
+//		    		g.drawLine(j * 10 + 4, i * 10 + 4, j * 10 + 6, i * 10 + 6);
+//		    	}
+//		    }
+//		}
 	}
 	
 	/**

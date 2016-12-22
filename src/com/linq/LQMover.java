@@ -391,6 +391,9 @@ public class LQMover {
 		leftMotor.stop();
 		rightMotor.stop();
 		setOffset(ANGLE-offset);
+		if(sensor.isWallFront()) {
+			setParallel(45);
+		}
 	}
 	
 	/**
@@ -406,6 +409,10 @@ public class LQMover {
 		leftMotor.stop();
 		rightMotor.stop();
 		setOffset(ANGLE-offset);
+		if(sensor.isWallFront()) {
+			setParallel(45);
+			Delay.msDelay(100);
+		}
 	}
 	
 	/**
@@ -458,7 +465,7 @@ public class LQMover {
 					}
 				}
 				// –Ú•WŠp“x‚Æ‚Ì·‚É”ä—á‚µ‚½speed‚ðÝ’è(Å’á:50)
-				speed = (byte) (50 + Math.abs(curDirection) / 18000 * 50);
+				speed = (byte) (60 + Math.abs(curDirection) / 18000 * 40);
 				leftMotor.setPower(speed);
 				rightMotor.setPower(speed);
 				if(curDirection > 0) {

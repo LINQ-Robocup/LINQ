@@ -88,7 +88,7 @@ public class LQSensor {
 					Delay.msDelay(250);
 				}
 			}else if(Button.RIGHT.isDown()) {
-				if(menu < 2) {
+				if(menu < 3) {
 					menu++;
 					Delay.msDelay(250);
 				}
@@ -118,7 +118,10 @@ public class LQSensor {
 				LCD.drawString("ACCEL_Y", 0, 5);	LCD.drawInt(getAccelYValue(), showValueOffset, 5);
 				LCD.drawString("ACCEL_Z", 0, 6);	LCD.drawInt(getAccelZValue(), showValueOffset, 6);
 				break;
-				
+			case 2:
+				LCD.drawString("isWallR", 0, 0);	LCD.drawInt(isWallRight() ? 1 : 0, showValueOffset, 0);
+				LCD.drawString("isWallL", 0, 1);	LCD.drawInt(isWallLeft()  ? 1 : 0, showValueOffset, 1);
+				LCD.drawString("isWallF", 0, 2);	LCD.drawInt(isWallFront() ? 1 : 0, showValueOffset, 2);
 			default:
 				break;
 			}
@@ -145,6 +148,8 @@ public class LQSensor {
 			return tempLeftValue;
 		case TEMP_R:
 			return tempRightValue;
+		case SRDIST:
+			return srValue;
 		default:
 			break;
 		}
@@ -179,24 +184,29 @@ public class LQSensor {
 	}
 	
 	public boolean isWallLeft() {
-		int threshold = 30;
-		if(getValue(IRDIST_L) < threshold) {
+		int threshold = 100;
+		readAllSensors();
+//		if(getValue(IRDIST_L) < threshold) {
+		if(irDistLeftValue < threshold) {
 			return true;
 		}else{
 			return false;
 		}
 	}
 	public boolean isWallRight() {
-		int threshold = 30;
-		if(getValue(IRDIST_R) < threshold) {
+		int threshold = 100;
+		readAllSensors();
+//		if(getValue(IRDIST_R) < threshold) {
+		if(irDistRightValue < threshold) {
 			return true;
 		}else{
 			return false;
 		}
 	}
 	public boolean isWallFront() {
-		int threshold = 30;
-		if(getValue(SRDIST) < threshold) {
+		int threshold = 20;
+//		if(getValue(SRDIST) < threshold) {
+		if(srValue < threshold) {
 			return true;
 		}else{
 			return false;
