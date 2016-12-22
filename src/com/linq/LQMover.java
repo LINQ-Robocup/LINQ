@@ -423,6 +423,7 @@ public class LQMover {
 	 * @param pass : true)通過済み, false)未通過・被災者探索
 	 */
 	private void rotate(int direction, boolean pass) {
+		sensor.ledYellow(true);
 		int curDirection = 0;
 		byte tmp_cnt = 0;
 		byte speed = 40;
@@ -447,7 +448,9 @@ public class LQMover {
 							leftMotor.stop();
 							rightMotor.stop();
 							//LED点滅・レスキューキット排出
-							Delay.msDelay(2000);
+							sensor.blinkLED();
+							sensor.servoLeft();
+//							Delay.msDelay(2000);
 							pass = true;
 						}
 						tmp_cnt ++;
@@ -458,7 +461,9 @@ public class LQMover {
 							leftMotor.stop();
 							rightMotor.stop();
 							//LED点滅・レスキューキット排出
-							Delay.msDelay(2000);
+							sensor.blinkLED();
+							sensor.servoRight();
+//							Delay.msDelay(2000);
 							pass = true;
 						}
 						tmp_cnt ++;
@@ -480,5 +485,6 @@ public class LQMover {
 				}
 			}
 		}
+		sensor.ledYellow(false);
 	}
 }
