@@ -1,4 +1,5 @@
 package com.linq;
+
 import lejos.nxt.*;
 import lejos.util.Delay;
 
@@ -37,44 +38,40 @@ public class Main extends MapInfo {
 		map.dispMapInfo();
 		while(!Button.ENTER.isDown());
 		while(true) {
-			LCD.clear();
-			LCD.drawString("RIHGT: " + map.curPos.getWallRight() , 0, 1);
-			LCD.drawString("FRONT: " + map.curPos.getWallFront() , 0, 2);
-			LCD.drawString("LEFT : " + map.curPos.getWallLeft() ,  0, 3);
-			LCD.drawString("BACK : " + map.curPos.getWallBack() , 0, 4);
-			Delay.msDelay(1000);
+//			LCD.clear();
+//			LCD.drawString("RIHGT: " + map.curPos.getWallRight() , 0, 1);
+//			LCD.drawString("FRONT: " + map.curPos.getWallFront() , 0, 2);
+//			LCD.drawString("LEFT : " + map.curPos.getWallLeft() ,  0, 3);
+//			LCD.drawString("BACK : " + map.curPos.getWallBack() , 0, 4);
+//			Delay.msDelay(1000);
 			if(map.curPos.getWallRight() == map.UNKNOWN) {
 				map.curPos.setWallRight(sensor.isWallRight() ? map.WALL : map.FLAG);
-				map.arrangeMap();
-				//map.dispMap();
+				//map.arrangeMap();
 			}
 			if(map.curPos.getWallFront() == map.UNKNOWN) {
 				map.curPos.setWallFront(sensor.isWallFront() ? map.WALL : map.FLAG);
-				map.arrangeMap();
-				//map.dispMap();
+				//map.arrangeMap();
 			}
 			if(map.curPos.getWallLeft() == map.UNKNOWN) {
 				map.curPos.setWallLeft(sensor.isWallLeft() ? map.WALL : map.FLAG);
-				map.arrangeMap();
-				//map.dispMap();
+				//map.arrangeMap();
 			}
 			if(map.curPos.getWallBack() == map.UNKNOWN) {
 				if(map.curPos.room == 0) {
 					if(sensor.isWallRight()) {
 						motion.turnRight(true);
 						map.curPos.setWallBack(sensor.isWallRight() ? map.WALL : map.FLAG);
-						map.arrangeMap();
-						//map.dispMap();
+						//map.arrangeMap();
 						motion.turnLeft(true);
 					} else {
 						motion.turnLeft(true);
 						map.curPos.setWallBack(sensor.isWallLeft() ? map.WALL : map.FLAG);
-						map.arrangeMap();
-						//map.dispMap();
+						//map.arrangeMap();
 						motion.turnRight(true);
 					}
 				}
 			}
+			map.arrangeMap();
 			map.dispMapInfo();
 			byte direction = 1;
 			byte maxValue = 0;
@@ -107,12 +104,15 @@ public class Main extends MapInfo {
 					break;
 				}
 			}
-			LCD.clear();
-			LCD.drawString("RIHGT: " + map.curPos.getWallRight() , 0, 1);
-			LCD.drawString("FRONT: " + map.curPos.getWallFront() , 0, 2);
-			LCD.drawString("LEFT : " + map.curPos.getWallLeft() ,  0, 3);
-			LCD.drawString("BACK : " + map.curPos.getWallBack() , 0, 4);
-			Delay.msDelay(2000);
+			if(maxValue >= map.FLAG - 1) {
+				map.resetDistanceMap();
+			}
+//			LCD.clear();
+//			LCD.drawString("RIHGT: " + map.curPos.getWallRight() , 0, 1);
+//			LCD.drawString("FRONT: " + map.curPos.getWallFront() , 0, 2);
+//			LCD.drawString("LEFT : " + map.curPos.getWallLeft() ,  0, 3);
+//			LCD.drawString("BACK : " + map.curPos.getWallBack() , 0, 4);
+//			Delay.msDelay(2000);
 			switch(direction) {
 				case 0:
 					motion.turnRight(map.curPos.isPassedThrough());
@@ -131,9 +131,6 @@ public class Main extends MapInfo {
 				default:
 			}
 			
-			if(map.curPos.getCurPos() == map.FLAG-1) {
-				map.resetDistanceMap();
-			}
 			map.dispMapInfo();
 			byte result = (byte) motion.tileForward(80, map.curPos.getWallFront() == map.PASS ? true : false);
 			if(map.curPos.getCurPos() == map.UNKNOWN) {
@@ -163,7 +160,7 @@ public class Main extends MapInfo {
 						} else if(!sensor.isWallLeft()) {
 							motion.turnLeft(true);
 						}
-						while(!Button.ENTER.isDown());
+						motion.downRamp();
 						map.changePrevRoom();
 					}
 				}

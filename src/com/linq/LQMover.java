@@ -2,8 +2,8 @@ package com.linq;
 
 import java.lang.Math;
 
-import lejos.nxt.Button;
-import lejos.nxt.LCD;
+//import lejos.nxt.Button;
+//import lejos.nxt.LCD;
 import lejos.nxt.Sound;
 import lejos.nxt.TachoMotorPort;
 import lejos.util.Delay;
@@ -53,7 +53,7 @@ public class LQMover {
 		int leftOffset = sensor.irDistFLeftValue;
 		int rightOffset = sensor.irDistFRightValue;
 		
-		if(!sensor.isWallFront()) {
+		if(leftOffset > 80 || rightOffset > 80) {
 			return;
 		}
 		
@@ -94,11 +94,11 @@ public class LQMover {
 			}
 			leftMotor.stop();
 			rightMotor.stop();
-			//offset = 0;
+			offset = 0;
 		}
-		
-		int dist = (sensor.irDistFLeftValue + sensor.irDistFRightValue) / 2;
-		if(dist < 44 || dist > 46) {
+		sensor.readAllSensors();
+//		int dist = (sensor.irDistFLeftValue + sensor.irDistFRightValue) / 2;
+		if(sensor.srValue < 7 || sensor.srValue > 9) {
 			setDistance(speed-5);
 		}
 		leftMotor.stop();
@@ -114,7 +114,7 @@ public class LQMover {
 			int dist = sensor.srValue;//(sensor.irDistFLeftValue + sensor.irDistFRightValue) / 2;
 			if(!sensor.isWallFront()) {
 				break;
-			} else if(Math.abs(dist-8) > 3) {
+			} else if(Math.abs(dist-8) > 1) {
 				leftMotor.setPower(speed);
 				rightMotor.setPower(speed);
 				if(dist > 8) {
@@ -134,7 +134,7 @@ public class LQMover {
 	public void avoidWall(int direction) {
 		leftMotor.stop();
 		rightMotor.stop();
-		int wallAvoidAngle = 180;
+		int wallAvoidAngle = 120;
 		sensor.readAllSensors();
 		if(direction == LEFT) {
 			//left to right
@@ -178,13 +178,30 @@ public class LQMover {
 			}
 		}
 	}
+
+	public void backWall() {
+		byte speed = 50;
+		leftMotor.setPower(speed);
+		rightMotor.setPower(speed);
+		leftMotor.backward();
+		rightMotor.backward();
+		Delay.msDelay(500);
+		leftMotor.resetTachoCount();
+		rightMotor.resetTachoCount();
+		while(leftMotor.getTachoCount() < 120) {
+			leftMotor.forward();
+			rightMotor.forward();
+		}
+		leftMotor.stop();
+		rightMotor.stop();
+		this.offset = 0;
+	}
 	
 	public void climbRamp(int speed) {
-//		int flatThreshold = -50;
 		leftMotor.setPower(speed);
 		rightMotor.setPower(speed);
 		int rampCount = 0;
-		boolean didRescue = false;
+//		boolean didRescue = false;
 		while (true) {
 			sensor.readAllSensors();
 			if(sensor.srValue < 7) {
@@ -196,20 +213,20 @@ public class LQMover {
 				rampCount = 0;
 			}
 			/* rescue */
-			if(didRescue == false && sensor.tempLeftValue > tempThreshold) {
-				leftMotor.stop();
-				rightMotor.stop();
-				Sound.beepSequence();
-				sensor.blinkLED();
-				didRescue = true;
-			}
-			if(didRescue == false && sensor.tempRightValue > tempThreshold) {
-				leftMotor.stop();
-				rightMotor.stop();
-				Sound.beepSequence();
-				sensor.blinkLED();
-				didRescue = true;
-			}
+//			if(didRescue == false && sensor.tempLeftValue > tempThreshold) {
+//				leftMotor.stop();
+//				rightMotor.stop();
+//				Sound.beepSequence();
+//				sensor.blinkLED();
+//				didRescue = true;
+//			}
+//			if(didRescue == false && sensor.tempRightValue > tempThreshold) {
+//				leftMotor.stop();
+//				rightMotor.stop();
+//				Sound.beepSequence();
+//				sensor.blinkLED();
+//				didRescue = true;
+//			}
 			
 			/* avoid wall */
 			if(sensor.isLeftTouchPressed()) {
@@ -259,16 +276,11 @@ public class LQMover {
 	}
 	
 	public void downRamp() {
-		int speed = 40;
+		int speed = 30;
 		int rampCount = 0;
 		leftMotor.setPower(speed);
 		rightMotor.setPower(speed);
 		
-		if(sensor.isWallRight()) {
-			turnLeft(true);
-		}else{
-			turnRight(false);
-		}
 		while (true) {
 			if(sensor.getValue(sensor.SRDIST) < 6) {
 				rampCount++;
@@ -303,8 +315,8 @@ public class LQMover {
 		setParallel(40);
 		turnLeft(true);
 		setParallel(40);
-		
 	}
+	
 	public int tileForward(int speed, boolean pass) {
 		leftMotor.setPower(speed);
 		rightMotor.setPower(speed);
@@ -324,6 +336,8 @@ public class LQMover {
 		byte rampUpCount = 0;
 		int rampUpthreshold = -300;
 		
+		boolean victim = pass;
+		
 		leftMotor.stop();
 		rightMotor.stop();
 		leftMotor.resetTachoCount();
@@ -335,23 +349,27 @@ public class LQMover {
 			sensor.getGyroValue();
 			
 			/* black */
-			if(sensor.getLightValue() < 20) {
-				blackCount++;
-				if(blackCount > 2) {
-					while (leftMotor.getTachoCount() > 0) {
-						leftMotor.backward();
-						rightMotor.backward();
+			if(pass == false) {
+				if(sensor.getLightValue() < 20) {
+					blackCount++;
+					if(blackCount > 2) {
+						while (leftMotor.getTachoCount() > 0) {
+							leftMotor.backward();
+							rightMotor.backward();
+						}
+						leftMotor.stop();
+						rightMotor.stop();
+						Delay.msDelay(100);
+						this.offset = this.offset - sensor.getGyroValue();
+						return BLACK;
 					}
-					leftMotor.stop();
-					rightMotor.stop();
-					return BLACK;
+				} else {
+					blackCount = 0;
 				}
-			}else{
-				blackCount = 0;
 			}
 			
 			/* rescue */
-			if(pass == false && i > 1 && i < 10) {
+			if(victim == false && i > 1) {
 				//left
 				if(sensor.irDistLeftValue < wallDistThreshold && sensor.tempLeftValue > tempThreshold) {
 					tempLeftCount++;
@@ -372,9 +390,9 @@ public class LQMover {
 						leftMotor.stop();
 						rightMotor.stop();
 
-						pass = true;
+						victim = true;
 					}
-				}else{
+				} else {
 					tempLeftCount = 0;
 				}
 				//right
@@ -388,17 +406,17 @@ public class LQMover {
 						leftMotor.stop();
 						rightMotor.stop();
 
-						sensor.servoLeft();
 						sensor.blinkLED();
+						sensor.servoLeft();
 						
 						rotate(gyroValue, true);
 						leftMotor.setPower(speed);
 						rightMotor.setPower(speed);
 						leftMotor.stop();
 						rightMotor.stop();
-						pass = true;
+						victim = true;
 					}
-				}else{
+				} else {
 					tempRightCount = 0;
 				}
 			}
@@ -419,21 +437,19 @@ public class LQMover {
 		}
 		leftMotor.stop();
 		rightMotor.stop();
-		Delay.msDelay(500);
-		/* ramp */
-		for (int i = 0; i < 2; i++) {
-			if(sensor.getAccelYValue() < rampUpthreshold) {
-				rampUpCount++;
-				if(rampUpCount >= 2) {
-					climbRamp(speed);
-					LCD.clear();
-					while (!Button.ENTER.isDown()) {
-						LCD.drawString("RAMP", 5, 5);
+		if(pass == false) {
+			Delay.msDelay(100);
+			/* ramp */
+			for (int i = 0; i < 2; i++) {
+				if(sensor.getAccelYValue() < rampUpthreshold) {
+					rampUpCount++;
+					if(rampUpCount >= 2) {
+						climbRamp(speed);
+						return RAMP;
 					}
-					return RAMP;
+				} else {
+					break;
 				}
-			}else{
-				break;
 			}
 		}
 		/* silver */
@@ -441,17 +457,20 @@ public class LQMover {
 		int silverMaxThreshold = 60;
 		byte silverCount = 0;
 		for (int i = 0; i < 3; i++) {
-			if (sensor.getLightValue() > silverThreshold && sensor.getLightValue() < silverMaxThreshold) {
+			if(sensor.getLightValue() > silverThreshold && sensor.getLightValue() < silverMaxThreshold) {
 				silverCount++;
-				if(silverCount == 3) {
-					return SILVER;
+				if(silverCount >= 3) {
+					break;
 				}
-			}else {
+			} else {
 				break;
 			}
 		}
-		offset = offset - sensor.getGyroValue();
+		this.offset = this.offset - sensor.getGyroValue();
 		sensor.ledGreen(false);
+		if(silverCount >= 3) {
+			return SILVER;
+		}
 		return WHITE;
 	}
 
@@ -469,8 +488,12 @@ public class LQMover {
 	 */
 	public void turnRight(boolean pass) {
 		final int ANGLE = 9000;//時計回り90度
+		boolean back = false;
 		leftMotor.stop();
 		rightMotor.stop();
+		if(sensor.isWallLeft()) {
+			back = true;
+		}
 		sensor.resetGyroValue();
 		if(pass == false)
 			sensor.ledGreen(true);
@@ -480,8 +503,9 @@ public class LQMover {
 		setOffset(ANGLE-offset);
 		sensor.ledGreen(true);
 		if(sensor.isWallFront()) {
-			setParallel(45);
-			
+			setParallel(45);	
+		} else if(back == true) {
+			backWall();
 		}
 	}
 	
@@ -491,8 +515,12 @@ public class LQMover {
 	 */
 	public void turnLeft(boolean pass) {
 		final int ANGLE = -9000;//反時計回り90度
+		boolean back = false;
 		leftMotor.stop();
 		rightMotor.stop();
+		if(sensor.isWallRight()) {
+			back = true;
+		}
 		sensor.resetGyroValue();
 		if(pass == false) 
 			sensor.ledGreen(true);
@@ -503,6 +531,8 @@ public class LQMover {
 		sensor.ledGreen(false);
 		if(sensor.isWallFront()) {
 			setParallel(45);
+		} else if(back == true) {
+			backWall();
 		}
 	}
 	
@@ -512,7 +542,6 @@ public class LQMover {
 	 * @param pass : true)通過済み, false)未通過・被災者探索
 	 */
 	private void rotate (int direction, boolean pass) {
-		//sensor.ledYellow(true);
 		int curDirection = 0;
 		byte tmp_cnt = 0;
 		byte speed = 40;
@@ -524,13 +553,13 @@ public class LQMover {
 				curDirection += (curDirection > 0) ? -36000 : 36000; 
 			}
 			/* 目標角度に到達するための方向修正 */
-			if(curDirection > -500 && curDirection < 500) {
+			if(curDirection > -50 && curDirection < 50) {
 				break;
 			} else {
 				if(pass == false) {
 					/* 熱源検知(未通過のみ) */
 					sensor.readAllSensors();
-					if(direction < 0 && sensor.irDistRightValue < 80 && sensor.tempRightValue > tempThreshold) {
+					if(direction < 0 && sensor.irDistRightValue < 80 &&  curDirection > 1500 && sensor.tempRightValue > tempThreshold) {
 						if(tmp_cnt >= 2) {
 							//被災者検知(左回転, 右側)
 							rotate(gyro - 9000, true);//現在の角度-90度回転(被災者に背を向ける)
@@ -539,11 +568,10 @@ public class LQMover {
 							//LED点滅・レスキューキット排出
 							sensor.blinkLED();
 							sensor.servoLeft();
-//							Delay.msDelay(2000);
 							pass = true;
 						}
 						tmp_cnt ++;
-					} else if(direction > 0 && sensor.irDistLeftValue < 80 && sensor.tempLeftValue > tempThreshold) {
+					} else if(direction > 0 && sensor.irDistLeftValue < 80 && curDirection < -1500 && sensor.tempLeftValue > tempThreshold) {
 						if(tmp_cnt >= 2) {
 							//被災者検知(右回転, 左側)
 							rotate(gyro + 9000, true);//現在の角度+90度回転(被災者に背を向ける)
@@ -552,7 +580,6 @@ public class LQMover {
 							//LED点滅・レスキューキット排出
 							sensor.blinkLED();
 							sensor.servoRight();
-//							Delay.msDelay(2000);
 							pass = true;
 						}
 						tmp_cnt ++;
@@ -561,7 +588,11 @@ public class LQMover {
 					}
 				}
 				// 目標角度との差に比例したspeedを設定(最低:50)
-				speed = (byte) (60 + Math.abs(curDirection) / 18000 * 40);
+				if(Math.abs(curDirection) > 1500) {
+					speed = 80;
+				} else {
+					speed = (byte) (40 + Math.abs(curDirection) / 1500 * 40);
+				}
 				leftMotor.setPower(speed);
 				rightMotor.setPower(speed);
 				if(curDirection > 0) {
@@ -574,6 +605,5 @@ public class LQMover {
 				}
 			}
 		}
-		//sensor.ledYellow(false);
 	}
 }

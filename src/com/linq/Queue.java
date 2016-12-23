@@ -32,7 +32,6 @@ public class Queue{
 	 */
 	public boolean enqueue(byte data) {
 		if(queSize > queue.length) {
-			System.out.println("Queue Error");
 			return false;
 		}
 		queue[queSize] = data;

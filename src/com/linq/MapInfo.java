@@ -1,9 +1,8 @@
 package com.linq;
 
 import java.io.*;
-
 import lejos.nxt.*;
-import lejos.util.Delay;
+//import lejos.util.Delay;
 
 import javax.microedition.lcdui.Graphics;
 
@@ -68,7 +67,7 @@ public class MapInfo {
 		 * @param which シフト方向の選択) true:右シフト+2, false:左シフト-2 
 		 */
 		public void shiftX(boolean which) {
-			x += (which) ? 2 : -2;
+			this.x += (which) ? 2 : -2;
 		}
 		
 		/**
@@ -76,7 +75,7 @@ public class MapInfo {
 		 * @param which シフト方向の選択) true:上シフト+2, false:下シフト-2
 		 */
 		public void shiftY(boolean which) {
-			y += (which) ? 2 : -2;
+			this.y += (which) ? 2 : -2;
 		}
 		
 		/**
@@ -91,182 +90,181 @@ public class MapInfo {
 		public void changePos() {
 			switch(direc) {
 				case 0:
-					curPos.y += 2; 
+					this.y += 2; 
 					break;
 				case 1:
-					curPos.x += 2;
+					this.x += 2;
 					break;
 				case 2:
-					curPos.y -= 2;
+					this.y -= 2;
 					break;
 				case 3:
-					curPos.x -= 2;
+					this.x -= 2;
 					break;
 				default:
 			}
 		}
 		
 		public void resetPosition() {
-			x = INITIAL_POS_X;
-			y = INITIAL_POS_Y;
-			direc = INITIAL_DIREC;
-			map[room][x][y] = PASS;
+			this.x = INITIAL_POS_X;
+			this.y = INITIAL_POS_Y;
+			this.direc = INITIAL_DIREC;
+			map[this.room][this.x][this.y] = PASS;
 		}
 		
 		void setFrontPass() {
 			switch(direc) {
 				case 0:
-					map[room][y+1][x] = PASS;
+					map[this.room][this.y+1][this.x] = PASS;
 					break;
 				case 1:
-					map[room][y][x+1] = PASS;
+					map[this.room][this.y][this.x+1] = PASS;
 					break;
 				case 2:
-					map[room][y-1][x] = PASS;
+					map[this.room][this.y-1][this.x] = PASS;
 					break;
 				case 3:
-					map[room][y][x-1] = PASS;
+					map[this.room][this.y][this.x-1] = PASS;
 					break;
 				default:
 			}
-//			map[room][y+Y_D[direc]][x+X_D[direc]] = PASS;
 		}
 		
 		boolean isPassedThrough() {
-			return (map[room][y][x] == PASS) ? true : false; 
+			return (map[this.room][this.y][this.x] == PASS) ? true : false; 
 		}
 		
 		byte getCurPos() {
-			return map[room][y][x];
+			return map[this.room][this.y][this.x];
 		}
 		
 		byte getWallFront() {
-			switch(direc) {
+			switch(this.direc) {
 				case 0:
-					return map[room][y+1][x];
+					return map[this.room][this.y+1][this.x];
 				case 1:
-					return map[room][y][x+1];
+					return map[this.room][this.y][this.x+1];
 				case 2:
-					return map[room][y-1][x];
+					return map[this.room][this.y-1][this.x];
 				case 3:
-					return map[room][y][x-1];
+					return map[this.room][this.y][this.x-1];
 				default:
 			}
 			return WALL;
 		}
 		
 		byte getWallRight() {
-			switch(direc) {
+			switch(this.direc) {
 				case 0:
-					return map[room][y][x+1];
+					return map[this.room][this.y][this.x+1];
 				case 1:
-					return map[room][y-1][x];
+					return map[this.room][this.y-1][this.x];
 				case 2:
-					return map[room][y][x-1];
+					return map[this.room][this.y][this.x-1];
 				case 3:
-					return map[room][y+1][x];
+					return map[this.room][this.y+1][this.x];
 				default:
 			}
 			return WALL;
 		}
 		
 		byte getWallLeft() {
-			switch(direc) {
+			switch(this.direc) {
 				case 0:
-					return map[room][y][x-1];
+					return map[this.room][this.y][this.x-1];
 				case 1:
-					return map[room][y+1][x];
+					return map[this.room][this.y+1][this.x];
 				case 2:
-					return map[room][y][x+1];
+					return map[this.room][this.y][this.x+1];
 				case 3:
-					return map[room][y-1][x];
+					return map[this.room][this.y-1][this.x];
 				default:
 			}
 			return WALL;
 		}
 		
 		byte getWallBack() {
-			switch(direc) {
+			switch(this.direc) {
 				case 0:
-					return map[room][y-1][x];
+					return map[this.room][this.y-1][this.x];
 				case 1:
-					return map[room][y][x-1];
+					return map[this.room][this.y][this.x-1];
 				case 2:
-					return map[room][y+1][x];
+					return map[this.room][this.y+1][this.x];
 				case 3:
-					return map[room][y][x+1];
+					return map[this.room][this.y][this.x+1];
 				default:
 			}
 			return WALL;
 		}
 		
 		void setWallFront(byte info) {
-			switch(direc) {
+			switch(this.direc) {
 				case 0:
-					map[room][y+1][x] = info;
+					map[this.room][this.y+1][this.x] = info;
 					break;
 				case 1:
-					map[room][y][x+1] = info;
+					map[this.room][this.y][this.x+1] = info;
 					break;
 				case 2:
-					map[room][y-1][x] = info;
+					map[this.room][this.y-1][this.x] = info;
 					break;
 				case 3:
-					map[room][y][x-1] = info;
+					map[this.room][this.y][this.x-1] = info;
 					break;
 				default:
 			}
 		}
 		
 		void setWallRight(byte info) {
-			switch(direc) {
+			switch(this.direc) {
 				case 0:
-					map[room][y][x+1] = info;
+					map[this.room][this.y][this.x+1] = info;
 					break;
 				case 1:
-					map[room][y-1][x] = info;
+					map[this.room][this.y-1][this.x] = info;
 					break;
 				case 2:
-					map[room][y][x-1] = info;
+					map[this.room][this.y][this.x-1] = info;
 					break;
 				case 3:
-					map[room][y+1][x] = info;
+					map[this.room][this.y+1][this.x] = info;
 					break;
 				default:
 			}
 		}
 		
 		void setWallLeft(byte info) {
-			switch(direc) {
+			switch(this.direc) {
 				case 0:
-					map[room][y][x-1] = info;
+					map[this.room][this.y][this.x-1] = info;
 					break;
 				case 1:
-					map[room][y+1][x] = info;
+					map[this.room][this.y+1][this.x] = info;
 					break;
 				case 2:
-					map[room][y][x-1] = info;
+					map[this.room][this.y][this.x-1] = info;
 					break;
 				case 3:
-					map[room][y-1][x] = info;
+					map[this.room][this.y-1][this.x] = info;
 					break;
 				default:
 			}
 		}
 		
 		void setWallBack(byte info) {
-			switch(direc) {
+			switch(this.direc) {
 				case 0:
-					map[room][y-1][x] = info;
+					map[this.room][this.y-1][this.x] = info;
 					break;
 				case 1:
-					map[room][y][x-1] = info;
+					map[this.room][this.y][this.x-1] = info;
 					break;
 				case 2:
-					map[room][y+1][x] = info;
+					map[this.room][this.y+1][this.x] = info;
 					break;
 				case 3:
-					map[room][y][x+1] = info;
+					map[this.room][this.y][this.x+1] = info;
 					break;
 				default:
 			}
@@ -291,74 +289,16 @@ public class MapInfo {
 				default:
 					break;
 			}
-			map[room][y][x] = WALL;
-			map[room][y+1][x] = WALL;
-			map[room][y][x+1] = WALL;
-			map[room][y-1][x] = WALL;
-			map[room][y][x-1] = WALL;
+			map[this.room][y][x] = WALL;
+			map[this.room][y+1][x] = WALL;
+			map[this.room][y][x+1] = WALL;
+			map[this.room][y-1][x] = WALL;
+			map[this.room][y][x-1] = WALL;
 		}
 		
 	}
 	CurrentPosition curPos = new CurrentPosition();
-	
-	/**
-	 * 出入り口の位置情報を操作するクラス
-	 *
-	 */
-//	public class DoorwayPosition {
-//	  /* 定数宣言 */
-//		final byte INITIAL_X = 1;
-//		final byte INITIAL_Y = 1;
-//		final byte INITIAL_DIREC = 0;
-//	  /* 変数宣言 */
-//		// 出入り口位置(XY座標, 方向)
-//		byte ent_x = INITIAL_X;
-//		byte ent_y = INITIAL_Y;
-//		byte ent_direc = INITIAL_DIREC;
-//		byte ext_x = INITIAL_X;
-//		byte ext_y = INITIAL_Y;
-//		byte ext_direc = INITIAL_DIREC;
-//
-//		
-//		//コンストラクタ(初期位置設定)
-////		DoorwayPosition() {
-////			this.ent_x = this.ext_x = INITIAL_X;
-////			this.ent_y = this.ext_y = INITIAL_Y;
-////			this.ent_direc = this.ext_direc = INITIAL_DIREC;
-////		}
-//		
-//		/**
-//		 * 出口(坂)の位置情報を入力
-//		 * @param x X座標
-//		 * @param y Y座標
-//		 * @param d 方向(direction)
-//		 */
-//		public void setExit(byte x, byte y, byte d) {
-//			this.ext_x = x;
-//			this.ext_y = y;
-//			this.ext_direc = d;
-//		}
-//		
-//		/**
-//		 * X軸方向(横方向)のマップ配列の値を1部屋分シフト
-//		 * @param which シフト方向の選択) true:右シフト+2, false:左シフト-2 
-//		 */
-//		public void shiftX(boolean which) {
-//			ent_x += (which) ? 2 : -2;
-//			ext_x += (which) ? 2 : -2;
-//		}
-//		
-//		/**
-//		 * Y軸方向(縦方向)のマップ配列の値を1部屋分シフト
-//		 * @param which シフト方向の選択) true:上シフト+2, false:下シフト-2
-//		 */
-//		public void shiftY(boolean which) {
-//			ent_y += (which) ? 2 : -2;
-//			ext_y += (which) ? 2 : -2;
-//		}
-//	}
-//	DoorwayPosition[] doorway = new DoorwayPosition[ROOM]; 
-	
+		
   /* Mapクラスのメソッド */
 	/**
 	 * マップ情報の初期化
@@ -467,14 +407,11 @@ public class MapInfo {
 	 * 位置情報のリセット(部屋移動時)
 	 */
 	public void changeNextRoom() {
-		doorway_ext_x[curPos.room] = curPos.x;
-		doorway_ext_y[curPos.room] = curPos.y;
-		doorway_ext_direc[curPos.room] = curPos.direc;
+		setDoorwayExit(curPos.x, curPos.y, curPos.direc);
 		curPos.room += 1;
 		curPos.x = doorway_ent_x[curPos.room] = curPos.INITIAL_POS_X;
 		curPos.y = doorway_ent_y[curPos.room] = curPos.INITIAL_POS_Y;
 		curPos.direc = curPos.INITIAL_DIREC;
-		map[curPos.room][curPos.y][curPos.x] = PASS;
 	}
 	
 	/**
@@ -526,18 +463,25 @@ public class MapInfo {
 	public void searchFlag() {
 		Queue queue = new Queue();
 		byte x, y;
+		boolean c = false;
+		for(byte i = 0; i < HEIGHT; i++) {
+			for(byte j = 0; j < WIDTH; j++) {
+				if(map[curPos.room][i][j] == FLAG) {
+					c = true;
+					break;
+				}
+			}
+		}
+		if(c == false) {
+			makeDistanceMap(doorway_ent_x[curPos.room], doorway_ent_y[curPos.room]);
+			return;
+		}
 		queue.enqueue(curPos.x);
 		queue.enqueue(curPos.y);
 		while(!queue.isEmpty()) {
 			x = queue.dequeue();
 			y = queue.dequeue();
 			for(byte i = 0; i < 4; i ++) {
-				switch (i) {
-					case 0:
-						break;
-					default:
-						break;
-				}
 				if(map[curPos.room][y+Y_D[i]][x+X_D[i]] == PASS) {
 					queue.enqueue((byte)(x+X_D[i]));
 					queue.enqueue((byte)(y+Y_D[i]));
@@ -547,9 +491,6 @@ public class MapInfo {
 				}
 			}
 		}
-		LCD.drawString("GOAL", 0, 0);
-		Delay.msDelay(10000);
-		makeDistanceMap(doorway_ent_x[curPos.room], doorway_ent_y[curPos.room]);
 	}
 	
 	/**
