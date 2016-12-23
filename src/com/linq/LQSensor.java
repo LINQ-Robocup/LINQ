@@ -110,8 +110,8 @@ public class LQSensor {
 				LCD.drawString("SR", 0, 6); 		LCD.drawInt(srValue, showValueOffset, 6);
 				break;
 			case 1:
-				LCD.drawString("TOUCH_L", 0, 0);	LCD.drawInt(isLeftTouchPressed(), showValueOffset, 0);
-				LCD.drawString("TOUCH_R", 0, 1);	LCD.drawInt(isRightTouchPressed(), showValueOffset, 1);
+				LCD.drawString("TOUCH_L", 0, 0);	LCD.drawString(isLeftTouchPressed() ? "true" : "false", showValueOffset, 0);
+				LCD.drawString("TOUCH_R", 0, 1);	LCD.drawString(isRightTouchPressed() ? "true" : "false", showValueOffset, 1);
 				LCD.drawString("LIGHT"	, 0, 2);	LCD.drawInt(light_right.getLightValue(), showValueOffset, 2);
 				LCD.drawString("GYRO"	, 0, 3);	LCD.drawInt(getGyroValue(), showValueOffset, 3);
 				LCD.drawString("ACCEL_X", 0, 4);	LCD.drawInt(getAccelXValue(), showValueOffset, 4);
@@ -159,12 +159,12 @@ public class LQSensor {
 	public int getLightValue() {
 		return light_right.getLightValue();
 	}
-	public int isLeftTouchPressed() {
-		return light_left.getLightValue() > 90 ? 1 : 0;
+	public boolean isLeftTouchPressed() {
+		return light_left.getLightValue() > 90 ? true : false;
 	}
 
-	public int isRightTouchPressed() {
-		return light_right.getLightValue() > 90 ? 1 : 0;
+	public boolean isRightTouchPressed() {
+		return light_right.getLightValue() > 90 ? true : false;
 	}
 	public int getGyroValue() {
 		return gyro.getAngle();

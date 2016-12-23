@@ -8,25 +8,10 @@ public class Main extends MapInfo {
 		LQMover motion = new LQMover(MotorPort.A, MotorPort.B);
 		LQSensor sensor = new LQSensor();
 		
-		MapInfo map = new MapInfo();
-		//map.doorway[0].reset();																																																																	
-		final byte x_d[] = {1, 0, -1, 0};
-		final byte y_d[] = {0, 1, 0, -1};
-		
-//		for(byte i = 0; i < map.ROOM; i++) {
-//			for(byte j = 0; j < map.HEIGHT; j++) {
-//				for(byte k = 0; k < map.WIDTH; k++) {
-//					map.map[i][j][k] = 0;
-//					if(j % 2 == 0 && k % 2 == 0) {
-//						//頂点はWALLとして初期化
-//						map.map[i][j][k] = map.WALL;
-//					} else {
-//						map.map[i][j][k] = map.UNKNOWN;
-//					}
-//				}
-//			}
-//		}
-		
+		MapInfo map = new MapInfo();																																																																	
+//		final byte x_d[] = {1, 0, -1, 0};
+//		final byte y_d[] = {0, 1, 0, -1};
+				
 		/* センサー情報のデバッグ出力 */
 		while (Button.ENTER.isDown());
 		while (!Button.ENTER.isDown()) {
@@ -51,69 +36,68 @@ public class Main extends MapInfo {
 		while(Button.ENTER.isDown());
 		map.dispMapInfo();
 		while(!Button.ENTER.isDown());
-		
 		while(true) {
+			LCD.clear();
+			LCD.drawString("RIHGT: " + map.curPos.getWallRight() , 0, 1);
+			LCD.drawString("FRONT: " + map.curPos.getWallFront() , 0, 2);
+			LCD.drawString("LEFT : " + map.curPos.getWallLeft() ,  0, 3);
+			LCD.drawString("BACK : " + map.curPos.getWallBack() , 0, 4);
+			Delay.msDelay(1000);
 			if(map.curPos.getWallRight() == map.UNKNOWN) {
-				LCD.clear();
-				LCD.drawString("RIGHT", 0, 0);
 				map.curPos.setWallRight(sensor.isWallRight() ? map.WALL : map.FLAG);
-				LCD.drawString("R X:" + map.curPos.x + " Y:" + map.curPos.y + " D :" + map.curPos.direc, 0, 0);
-				LCD.drawInt(map.map[map.curPos.room][1][2], 0, 1);
-				LCD.drawInt(map.map[map.curPos.room][1][0], 0, 2);
-				Delay.msDelay(1000); 
 				map.arrangeMap();
-				map.dispMapInfo();
-				LCD.clear();
-				LCD.drawString("R X:" + map.curPos.x + " Y:" + map.curPos.y + " D :" + map.curPos.direc, 0, 0);
-				LCD.drawInt(map.map[map.curPos.room][1][2], 0, 1);
-				LCD.drawInt(map.map[map.curPos.room][1][0], 0, 2);
-				Delay.msDelay(1000);
+				//map.dispMap();
 			}
 			if(map.curPos.getWallFront() == map.UNKNOWN) {
-				LCD.clear();
-				LCD.drawString("FORNT", 0, 0);
 				map.curPos.setWallFront(sensor.isWallFront() ? map.WALL : map.FLAG);
 				map.arrangeMap();
-				map.dispMapInfo();
-				LCD.clear();
-				LCD.drawString("F X:" + map.curPos.x + " Y:" + map.curPos.y + " D :" + map.curPos.direc, 0, 0);
-				Delay.msDelay(1000);
+				//map.dispMap();
 			}
 			if(map.curPos.getWallLeft() == map.UNKNOWN) {
-				LCD.clear();
-				LCD.drawString("LEFT", 0, 0);
 				map.curPos.setWallLeft(sensor.isWallLeft() ? map.WALL : map.FLAG);
 				map.arrangeMap();
-				map.dispMapInfo();
-				LCD.drawString("L X:" + map.curPos.x + " Y:" + map.curPos.y + " D :" + map.curPos.direc, 0, 0);
-				Delay.msDelay(1000);
+				//map.dispMap();
 			}
 			if(map.curPos.getWallBack() == map.UNKNOWN) {
-				LCD.drawString("BACK", 0, 0);
-				Delay.msDelay(1000);
 				if(map.curPos.room == 0) {
 					if(sensor.isWallRight()) {
 						motion.turnRight(true);
 						map.curPos.setWallBack(sensor.isWallRight() ? map.WALL : map.FLAG);
 						map.arrangeMap();
-						map.dispMap();
+						//map.dispMap();
 						motion.turnLeft(true);
 					} else {
 						motion.turnLeft(true);
 						map.curPos.setWallBack(sensor.isWallLeft() ? map.WALL : map.FLAG);
 						map.arrangeMap();
-						map.dispMap();
+						//map.dispMap();
 						motion.turnRight(true);
 					}
 				}
 			}
 			map.dispMapInfo();
-			byte direction = 0;
+			byte direction = 1;
+			byte maxValue = 0;
+			byte curValue = 0;
 			while(true) {
-				byte maxValue = 0;
 				for(byte d = 0; d < 4; d++) {
-					if(map.map[map.curPos.room][map.curPos.y+y_d[d]][map.curPos.x+x_d[d]] > maxValue) {
-						maxValue = map.map[map.curPos.room][map.curPos.y+y_d[d]][map.curPos.x+x_d[d]];
+					switch(d) {
+						case 0:
+							curValue = map.curPos.getWallRight();
+							break;
+						case 1:
+							curValue = map.curPos.getWallFront();
+							break;
+						case 2:
+							curValue = map.curPos.getWallLeft();
+							break;
+						case 3:
+							curValue = map.curPos.getWallBack();
+							break;
+							
+					}
+					if(curValue > maxValue) {
+						maxValue = curValue;
 						direction = d;
 					}
 				}
@@ -123,6 +107,12 @@ public class Main extends MapInfo {
 					break;
 				}
 			}
+			LCD.clear();
+			LCD.drawString("RIHGT: " + map.curPos.getWallRight() , 0, 1);
+			LCD.drawString("FRONT: " + map.curPos.getWallFront() , 0, 2);
+			LCD.drawString("LEFT : " + map.curPos.getWallLeft() ,  0, 3);
+			LCD.drawString("BACK : " + map.curPos.getWallBack() , 0, 4);
+			Delay.msDelay(2000);
 			switch(direction) {
 				case 0:
 					motion.turnRight(map.curPos.isPassedThrough());
@@ -140,38 +130,44 @@ public class Main extends MapInfo {
 					break;
 				default:
 			}
+			
 			if(map.curPos.getCurPos() == map.FLAG-1) {
 				map.resetDistanceMap();
 			}
 			map.dispMapInfo();
 			byte result = (byte) motion.tileForward(80, map.curPos.getWallFront() == map.PASS ? true : false);
-			map.map[map.curPos.room][map.curPos.y][map.curPos.x] = map.PASS;
+			if(map.curPos.getCurPos() == map.UNKNOWN) {
+				map.map[map.curPos.room][map.curPos.y][map.curPos.x] = map.PASS;
+			}
 			if(result == motion.BLACK) {
 				map.curPos.setFrontBlack();
 			} else {
 				map.curPos.setFrontPass();
 				map.curPos.changePos();
 			}
-//			if(result == motion.SILVER) {
-//				map.writeFile();
-//			}
-//			if(result == motion.RAMP) {
-//				map.changeNextRoom();
-//			} else {
-//				if(map.curPos.x == map.doorway[map.curPos.room].ent_x && map.curPos.y == map.doorway[map.curPos.room].ent_y) {
-//					if(map.curPos.room == 0) {
-//						break;
-//					} else {
-//						if(!sensor.isWallRight()) {
-//							motion.turnRight(true);
-//						} else if(!sensor.isWallLeft()) {
-//							motion.turnLeft(true);
-//						}
-//						while(!Button.ENTER.isDown());
-//						map.changePrevRoom();
-//					}
-//				}
-//			}
+			if(result == motion.SILVER) {
+				map.writeFile();
+				sensor.ledYellow(true);
+				Delay.msDelay(500);
+				sensor.ledYellow(false);
+			}
+			if(result == motion.RAMP) {
+				map.changeNextRoom();
+			} else {
+				if(map.curPos.x == map.doorway_ent_x[map.curPos.room] && map.curPos.y == map.doorway_ent_y[map.curPos.room]) {
+					if(map.curPos.room == 0) {
+						break;
+					} else {
+						if(!sensor.isWallRight()) {
+							motion.turnRight(true);
+						} else if(!sensor.isWallLeft()) {
+							motion.turnLeft(true);
+						}
+						while(!Button.ENTER.isDown());
+						map.changePrevRoom();
+					}
+				}
+			}
 			map.dispMapInfo();
 		}
 	}

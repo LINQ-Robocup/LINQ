@@ -32,6 +32,11 @@ public class MapInfo {
   /* 変数宣言 */
 	//マップ情報
 	public byte[][][] map = new byte[ROOM][HEIGHT][WIDTH];
+	public byte doorway_ent_x[] = new byte[2];
+	public byte doorway_ent_y[] = new byte[2];
+	public byte doorway_ext_x[] = new byte[2];
+	public byte doorway_ext_y[] = new byte[2];
+	public byte doorway_ext_direc[] = new byte[2];
   
   /* 内部クラス */
 	/**
@@ -45,15 +50,18 @@ public class MapInfo {
 		final byte INITIAL_DIREC = 0;
 	  /* 変数宣言 */
 		// 現在位置(XY座標, 部屋, 方向)
-		byte x = 1, y = 1, room = 0, direc = 0;
+		byte x = INITIAL_POS_X;
+		byte y = INITIAL_POS_Y;
+		byte direc = INITIAL_DIREC;
+		byte room = 0;
 		
 		// コンストラクタ(初期位置設定)
-		CurrentPosition() {
-			this.x = INITIAL_POS_X;
-			this.y = INITIAL_POS_Y;
-			this.direc = INITIAL_DIREC;
-			this.room = 0;
-		}
+//		CurrentPosition() {
+//			this.x = INITIAL_POS_X;
+//			this.y = INITIAL_POS_Y;
+//			this.direc = INITIAL_DIREC;
+//			this.room = 0;
+//		}
 		
 		/**
 		 * X軸方向(横方向)のマップ配列の値を1部屋分シフト
@@ -196,12 +204,16 @@ public class MapInfo {
 			switch(direc) {
 				case 0:
 					map[room][y+1][x] = info;
+					break;
 				case 1:
 					map[room][y][x+1] = info;
+					break;
 				case 2:
 					map[room][y-1][x] = info;
+					break;
 				case 3:
 					map[room][y][x-1] = info;
+					break;
 				default:
 			}
 		}
@@ -210,12 +222,16 @@ public class MapInfo {
 			switch(direc) {
 				case 0:
 					map[room][y][x+1] = info;
+					break;
 				case 1:
 					map[room][y-1][x] = info;
+					break;
 				case 2:
 					map[room][y][x-1] = info;
+					break;
 				case 3:
 					map[room][y+1][x] = info;
+					break;
 				default:
 			}
 		}
@@ -224,12 +240,16 @@ public class MapInfo {
 			switch(direc) {
 				case 0:
 					map[room][y][x-1] = info;
+					break;
 				case 1:
 					map[room][y+1][x] = info;
+					break;
 				case 2:
 					map[room][y][x-1] = info;
+					break;
 				case 3:
 					map[room][y-1][x] = info;
+					break;
 				default:
 			}
 		}
@@ -238,25 +258,46 @@ public class MapInfo {
 			switch(direc) {
 				case 0:
 					map[room][y-1][x] = info;
+					break;
 				case 1:
 					map[room][y][x-1] = info;
+					break;
 				case 2:
 					map[room][y+1][x] = info;
+					break;
 				case 3:
 					map[room][y][x+1] = info;
+					break;
 				default:
 			}
 		}
 		
 		void setFrontBlack() {
-			final byte d_x[] = {0, 2, 0, -2};
-			final byte d_y[] = {2, 0, -2, 0};
-			map[room][x+d_x[direc]][y+d_y[direc]] = WALL;
-			map[room][x+d_x[direc]+1][y+d_y[direc]] = WALL;
-			map[room][x+d_x[direc]][y+d_y[direc]+1] = WALL;
-			map[curPos.room][x+d_x[direc]-1][y+d_y[direc]] = WALL;
-			map[curPos.room][x+d_x[direc]][y+d_y[direc]-1] = WALL;
+			byte x = this.x;
+			byte y = this.y;
+			switch (this.direc) {
+				case 0:
+					y += 2;
+					break;
+				case 1:
+					x += 2;
+					break;
+				case 2:
+					y -= 2;
+					break;
+				case 3:
+					x -= 2;
+					break;
+				default:
+					break;
+			}
+			map[room][y][x] = WALL;
+			map[room][y+1][x] = WALL;
+			map[room][y][x+1] = WALL;
+			map[room][y-1][x] = WALL;
+			map[room][y][x-1] = WALL;
 		}
+		
 	}
 	CurrentPosition curPos = new CurrentPosition();
 	
@@ -264,60 +305,59 @@ public class MapInfo {
 	 * 出入り口の位置情報を操作するクラス
 	 *
 	 */
-	public class DoorwayPosition {
-	  /* 定数宣言 */
-		final byte INITIAL_X = 1;
-		final byte INITIAL_Y = 1;
-		final byte INITIAL_DIREC = 0;
-	  /* 変数宣言 */
-		// 出入り口位置(XY座標, 方向)
-		byte ent_x, ent_y, ent_direc;
-		byte ext_x, ext_y, ext_direc;
-		
-		//コンストラクタ(初期位置設定)
-		DoorwayPosition() {
-			this.ent_x = this.ext_x = INITIAL_X;
-			this.ent_y = this.ext_y = INITIAL_Y;
-			this.ent_direc = this.ext_direc = INITIAL_DIREC;
-		}
-		
-		void reset() {
-			this.ent_x = this.ext_x = INITIAL_X;
-			this.ent_y = this.ext_y = INITIAL_Y;
-			this.ent_direc = this.ext_direc = INITIAL_DIREC;
-		}
-		
-		/**
-		 * 出口(坂)の位置情報を入力
-		 * @param x X座標
-		 * @param y Y座標
-		 * @param d 方向(direction)
-		 */
-		public void setExit(byte x, byte y, byte d) {
-			this.ext_x = x;
-			this.ext_y = y;
-			this.ext_direc = d;
-		}
-		
-		/**
-		 * X軸方向(横方向)のマップ配列の値を1部屋分シフト
-		 * @param which シフト方向の選択) true:右シフト+2, false:左シフト-2 
-		 */
-		public void shiftX(boolean which) {
-			ent_x += (which) ? 2 : -2;
-			ext_x += (which) ? 2 : -2;
-		}
-		
-		/**
-		 * Y軸方向(縦方向)のマップ配列の値を1部屋分シフト
-		 * @param which シフト方向の選択) true:上シフト+2, false:下シフト-2
-		 */
-		public void shiftY(boolean which) {
-			ent_y += (which) ? 2 : -2;
-			ext_y += (which) ? 2 : -2;
-		}
-	}
-	DoorwayPosition[] doorway = new DoorwayPosition[ROOM]; 
+//	public class DoorwayPosition {
+//	  /* 定数宣言 */
+//		final byte INITIAL_X = 1;
+//		final byte INITIAL_Y = 1;
+//		final byte INITIAL_DIREC = 0;
+//	  /* 変数宣言 */
+//		// 出入り口位置(XY座標, 方向)
+//		byte ent_x = INITIAL_X;
+//		byte ent_y = INITIAL_Y;
+//		byte ent_direc = INITIAL_DIREC;
+//		byte ext_x = INITIAL_X;
+//		byte ext_y = INITIAL_Y;
+//		byte ext_direc = INITIAL_DIREC;
+//
+//		
+//		//コンストラクタ(初期位置設定)
+////		DoorwayPosition() {
+////			this.ent_x = this.ext_x = INITIAL_X;
+////			this.ent_y = this.ext_y = INITIAL_Y;
+////			this.ent_direc = this.ext_direc = INITIAL_DIREC;
+////		}
+//		
+//		/**
+//		 * 出口(坂)の位置情報を入力
+//		 * @param x X座標
+//		 * @param y Y座標
+//		 * @param d 方向(direction)
+//		 */
+//		public void setExit(byte x, byte y, byte d) {
+//			this.ext_x = x;
+//			this.ext_y = y;
+//			this.ext_direc = d;
+//		}
+//		
+//		/**
+//		 * X軸方向(横方向)のマップ配列の値を1部屋分シフト
+//		 * @param which シフト方向の選択) true:右シフト+2, false:左シフト-2 
+//		 */
+//		public void shiftX(boolean which) {
+//			ent_x += (which) ? 2 : -2;
+//			ext_x += (which) ? 2 : -2;
+//		}
+//		
+//		/**
+//		 * Y軸方向(縦方向)のマップ配列の値を1部屋分シフト
+//		 * @param which シフト方向の選択) true:上シフト+2, false:下シフト-2
+//		 */
+//		public void shiftY(boolean which) {
+//			ent_y += (which) ? 2 : -2;
+//			ext_y += (which) ? 2 : -2;
+//		}
+//	}
+//	DoorwayPosition[] doorway = new DoorwayPosition[ROOM]; 
 	
   /* Mapクラスのメソッド */
 	/**
@@ -358,8 +398,8 @@ public class MapInfo {
 					map[curPos.room][j][0] = UNKNOWN;
 					map[curPos.room][j][1] = UNKNOWN;
 				}
-				//curPos.shiftX(true);
-				//doorway[curPos.room].shiftX(true);
+				curPos.shiftX(true);
+				shiftDoorwayX(true);
 				break;
 			}
 			if(map[curPos.room][i][WIDTH-1] == FLAG) {
@@ -372,27 +412,14 @@ public class MapInfo {
 					map[curPos.room][j][WIDTH-2] = UNKNOWN;
 				}
 				curPos.shiftX(false);
-				//doorway[curPos.room].shiftX(false);
+				shiftDoorwayX(false);;
 				break;
 			}
 		}
 		/* 縦シフト (Y座標の0と末端がUNKOWNの場合)*/
 		for(byte i = 0; i < WIDTH; i++) {
-			if(map[curPos.room][HEIGHT-1][i] == FLAG) {
-				//上シフト
-				for(byte j = 0; j < WIDTH; j++) {
-					for(byte k = 0; k < HEIGHT-2; k++) {
-						map[curPos.room][k][j] = map[curPos.room][k+2][j];
-					}
-					map[curPos.room][HEIGHT-1][j] = UNKNOWN;
-					map[curPos.room][HEIGHT-2][j] = UNKNOWN;
-				}
-				curPos.shiftY(true);
-				//doorway[curPos.room].shiftY(true);
-				break;
-			}
 			if(map[curPos.room][0][i] == FLAG) {
-				//下シフト
+				//上シフト
 				for(byte j = 0; j < WIDTH; j++) {
 					for(byte k = HEIGHT-1; k > 1; k--) {
 						map[curPos.room][k][j] = map[curPos.room][k-2][j];
@@ -401,22 +428,51 @@ public class MapInfo {
 					map[curPos.room][1][j] = UNKNOWN;
 				}
 				curPos.shiftY(false);
-				//doorway[curPos.room].shiftY(false);
+				shiftDoorwayY(false);
+				break;
+			}
+			if(map[curPos.room][HEIGHT-1][i] == FLAG) {
+				//下シフト
+				for(byte j = 0; j < WIDTH; j++) {
+					for(byte k = 0; k < HEIGHT-2; k++) {
+						map[curPos.room][k][j] = map[curPos.room][k+2][j];
+					}
+					map[curPos.room][HEIGHT-1][j] = UNKNOWN;
+					map[curPos.room][HEIGHT-2][j] = UNKNOWN;
+				}
+				curPos.shiftY(true);
+				shiftDoorwayY(true);
 				break;
 			}
 		}
+	}
+	
+	public void setDoorwayExit(byte x, byte y, byte d) {
+		doorway_ext_x[curPos.room] = x;
+		doorway_ext_y[curPos.room] = y;
+		doorway_ext_direc[curPos.room] = d;
+	}
+	
+	public void shiftDoorwayX(boolean whitch) {
+		doorway_ent_x[curPos.room] += whitch ? 2 : -2;
+		doorway_ext_x[curPos.room] += whitch ? 2 : -2;
+	}
+	
+	public void shiftDoorwayY(boolean whitch) {
+		doorway_ent_y[curPos.room] += whitch ? 2 : -2;
+		doorway_ext_x[curPos.room] += whitch ? 2 : -2;
 	}
 	
 	/**
 	 * 位置情報のリセット(部屋移動時)
 	 */
 	public void changeNextRoom() {
-		doorway[curPos.room].ext_x = curPos.x;
-		doorway[curPos.room].ext_y = curPos.y;
-		doorway[curPos.room].ext_direc = curPos.direc;
+		doorway_ext_x[curPos.room] = curPos.x;
+		doorway_ext_y[curPos.room] = curPos.y;
+		doorway_ext_direc[curPos.room] = curPos.direc;
 		curPos.room += 1;
-		curPos.x = doorway[curPos.room].ent_x = curPos.INITIAL_POS_X;
-		curPos.y = doorway[curPos.room].ent_y = curPos.INITIAL_POS_Y;
+		curPos.x = doorway_ent_x[curPos.room] = curPos.INITIAL_POS_X;
+		curPos.y = doorway_ent_y[curPos.room] = curPos.INITIAL_POS_Y;
 		curPos.direc = curPos.INITIAL_DIREC;
 		map[curPos.room][curPos.y][curPos.x] = PASS;
 	}
@@ -426,9 +482,9 @@ public class MapInfo {
 	 */
 	public void changePrevRoom() {
 		curPos.room -= 1;
-		curPos.x = doorway[curPos.room].ext_x;
-		curPos.y = doorway[curPos.room].ext_y;
-		curPos.direc = (byte) ((doorway[curPos.room].ext_direc + 3) % 4);
+		curPos.x = doorway_ext_x[curPos.room];
+		curPos.y = doorway_ext_y[curPos.room];
+		curPos.direc = (byte) ((doorway_ext_direc[curPos.room] + 3) % 4);
 	}
 	
 	/**
@@ -476,6 +532,12 @@ public class MapInfo {
 			x = queue.dequeue();
 			y = queue.dequeue();
 			for(byte i = 0; i < 4; i ++) {
+				switch (i) {
+					case 0:
+						break;
+					default:
+						break;
+				}
 				if(map[curPos.room][y+Y_D[i]][x+X_D[i]] == PASS) {
 					queue.enqueue((byte)(x+X_D[i]));
 					queue.enqueue((byte)(y+Y_D[i]));
@@ -485,7 +547,9 @@ public class MapInfo {
 				}
 			}
 		}
-		makeDistanceMap(doorway[curPos.room].ent_x, doorway[curPos.room].ent_y);
+		LCD.drawString("GOAL", 0, 0);
+		Delay.msDelay(10000);
+		makeDistanceMap(doorway_ent_x[curPos.room], doorway_ent_y[curPos.room]);
 	}
 	
 	/**
@@ -511,12 +575,11 @@ public class MapInfo {
 				}
 			}
 	    	for(byte i = 0; i < ROOM; i++) {
-	    		dataOut.write(doorway[i].ent_x);
-	    		dataOut.write(doorway[i].ent_y);
-	    		dataOut.write(doorway[i].ent_direc);
-	    		dataOut.write(doorway[i].ext_x);
-	    		dataOut.write(doorway[i].ext_y);
-	    		dataOut.write(doorway[i].ext_direc);
+	    		dataOut.write(doorway_ent_x[i]);
+	    		dataOut.write(doorway_ent_y[i]);
+	    		dataOut.write(doorway_ext_x[i]);
+	    		dataOut.write(doorway_ext_y[i]);
+	    		dataOut.write(doorway_ext_direc[i]);
 	    	}
 	    	dataOut.write(curPos.x);
     		dataOut.write(curPos.y);
@@ -557,12 +620,11 @@ public class MapInfo {
 				}
 			}
 	    	for(byte i = 0; i < ROOM; i++) {
-	    		dataOut.write(doorway[i].INITIAL_X);
-	    		dataOut.write(doorway[i].INITIAL_Y);
-	    		dataOut.write(doorway[i].INITIAL_DIREC);
-	    		dataOut.write(doorway[i].INITIAL_X);
-	    		dataOut.write(doorway[i].INITIAL_Y);
-	    		dataOut.write(doorway[i].INITIAL_DIREC);
+	    		dataOut.write(curPos.INITIAL_POS_X);
+	    		dataOut.write(curPos.INITIAL_POS_Y);
+	    		dataOut.write(curPos.INITIAL_POS_X);
+	    		dataOut.write(curPos.INITIAL_POS_Y);
+	    		dataOut.write(curPos.INITIAL_DIREC);
 	    	}
 	    	dataOut.write(curPos.INITIAL_POS_X);
     		dataOut.write(curPos.INITIAL_POS_Y);
@@ -591,12 +653,11 @@ public class MapInfo {
 				}
 			}
 	    	for(byte i = 0; i < ROOM; i++) {
-	    		doorway[i].ent_x = din.readByte();
-	    		doorway[i].ent_y = din.readByte();
-	    		doorway[i].ent_direc = din.readByte();
-	    		doorway[i].ext_x = din.readByte();
-	    		doorway[i].ext_y = din.readByte();
-	    		doorway[i].ext_direc = din.readByte();
+	    		doorway_ent_x[i] = din.readByte();
+	    		doorway_ent_y[i] = din.readByte();
+	    		doorway_ext_x[i] = din.readByte();
+	    		doorway_ext_y[i] = din.readByte();
+	    		doorway_ext_direc[i] = din.readByte();
 	    	}
 	    	curPos.x = din.readByte();
     		curPos.y = din.readByte();
@@ -614,8 +675,8 @@ public class MapInfo {
 	 */
 	public void dispMapInfo() {
 		LCD.clear();
-		//dispMap();
-		//dispPosition();
+		dispMap();
+		dispPosition();
 	}
 	
 	/**
@@ -642,22 +703,20 @@ public class MapInfo {
 			}
 		}
 		/* タイル描画 */
-//		for(byte i = 0; i < TILE_HEIGHT; i++) {
-//		    for(byte j = 0; j < TILE_WIDTH; j++) {
-//		    	if(map[curPos.room][i*2+1][j*2+1] == WALL) {
-//		    		/* 黒タイルの描画 */
-//		    		/*
-//		    		for(byte k = 2; k <= 8; k ++) {
-//		    			g.drawLine(i * 10 + 2, j * 10 + k, j * 10 + 8, i * 10 + k);
-//		    		}
-//		    		*/
-//		    	} else if(map[curPos.room][j*2+1][i*2+1] == UNKNOWN && !(i*2+1 == curPos.x && j*2+1 == curPos.y)) {
-//		    		/* バツ印の描画 */
-//		    		g.drawLine(j * 10 + 4, i * 10 + 6, j * 10 + 6, i * 10 + 4);
-//		    		g.drawLine(j * 10 + 4, i * 10 + 4, j * 10 + 6, i * 10 + 6);
-//		    	}
-//		    }
-//		}
+		for(byte i = 0; i < TILE_HEIGHT; i++) {
+		    for(byte j = 0; j < TILE_WIDTH; j++) {
+		    	if(map[curPos.room][i*2+1][j*2+1] == WALL) {
+		    		/* 黒タイルの描画 */
+		    		for(byte k = 2; k <= 8; k ++) {
+		    			g.drawLine(j * 10 + 2, 63-(i * 10 + k), j * 10 + 8, 63-(i * 10 + k));
+		    		}
+		    	} else if(map[curPos.room][i*2+1][j*2+1] == UNKNOWN && !(j*2+1 == curPos.x && i*2+1 == curPos.y)) {
+		    		/* バツ印の描画 */
+		    		g.drawLine(j * 10 + 4, 63-(i * 10 + 6), j * 10 + 6, 63-(i * 10 + 4));
+		    		g.drawLine(j * 10 + 4, 63-(i * 10 + 4), j * 10 + 6, 63-(i * 10 + 6));
+		    	}
+		    }
+		}
 	}
 	
 	/**

@@ -8,7 +8,7 @@ package com.linq;
 public class Queue{
   /* 定数宣言 */
 	//Queue最大サイズ
-	private static final byte SIZE = 64;
+	private static final byte SIZE = 127;
   /* 変数宣言 */
 	//Queueバッファ
 	private static byte[] queue = new byte[SIZE];
