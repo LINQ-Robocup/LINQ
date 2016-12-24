@@ -137,7 +137,7 @@ public class MapInfo {
 		byte getCurPos() {
 			return map[this.room][this.y][this.x];
 		}
-		
+
 		byte getWallFront() {
 			switch(this.direc) {
 				case 0:
@@ -243,7 +243,7 @@ public class MapInfo {
 					map[this.room][this.y+1][this.x] = info;
 					break;
 				case 2:
-					map[this.room][this.y][this.x-1] = info;
+					map[this.room][this.y][this.x+1] = info;
 					break;
 				case 3:
 					map[this.room][this.y-1][this.x] = info;

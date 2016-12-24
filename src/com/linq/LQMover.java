@@ -47,8 +47,10 @@ public class LQMover {
 	 * épê®êßå‰(ëOï˚ÇÃï«Ç∆ïΩçsÇ…Ç»ÇÈÇÊÇ§Ç…èCê≥)
 	 */
 	public void setParallel(int speed) {
+		/*
 		leftMotor.stop();
 		rightMotor.stop();
+//		Sound.beep();
 		sensor.readAllSensors();
 		int leftOffset = sensor.irDistFLeftValue;
 		int rightOffset = sensor.irDistFRightValue;
@@ -98,38 +100,44 @@ public class LQMover {
 		}
 		sensor.readAllSensors();
 //		int dist = (sensor.irDistFLeftValue + sensor.irDistFRightValue) / 2;
-		if(sensor.srValue < 7 || sensor.srValue > 9) {
-			setDistance(speed-5);
-		}
+//		if(sensor.isWallFront()) {
+//			setDistance(speed-5);
+//		}
+		setDistance(speed-5);
 		leftMotor.stop();
 		rightMotor.stop();
+		*/
 	}
 	
 	/**
 	 * É^ÉCÉãÇÃíÜêSÇ…à⁄ìÆ(ëOï˚ÇÃï«Ç∆ÇÃãóó£ÇèCê≥)
 	 */
 	public void setDistance(int speed) {
+		if(!sensor.isWallFront()) {
+			Sound.beep();
+			return;
+		}
+		sensor.ledRed(true);
+//		Sound.beep();
+		int dist = 45;
 		while(true) {
 			sensor.readAllSensors();
-			int dist = sensor.srValue;//(sensor.irDistFLeftValue + sensor.irDistFRightValue) / 2;
-			if(!sensor.isWallFront()) {
-				break;
-			} else if(Math.abs(dist-8) > 1) {
-				leftMotor.setPower(speed);
-				rightMotor.setPower(speed);
-				if(dist > 8) {
-					leftMotor.forward();
-					rightMotor.forward();
-				} else {
-					leftMotor.backward();
-					rightMotor.backward();
-				}
+			dist = sensor.irDistFLeftValue;//(sensor.irDistFLeftValue + sensor.irDistFRightValue) / 2;
+			leftMotor.setPower(speed);
+			rightMotor.setPower(speed);
+			if(dist > 47) {
+				leftMotor.forward();
+				rightMotor.forward();
+			} else if(dist < 43){
+				leftMotor.backward();
+				rightMotor.backward();
 			} else {
 				break;
 			}
 		}
 		leftMotor.stop();
 		rightMotor.stop(); 
+		sensor.ledRed(false);
 	}
 	public void avoidWall(int direction) {
 		leftMotor.stop();
@@ -183,17 +191,22 @@ public class LQMover {
 		byte speed = 50;
 		leftMotor.setPower(speed);
 		rightMotor.setPower(speed);
-		leftMotor.backward();
-		rightMotor.backward();
-		Delay.msDelay(500);
+		
 		leftMotor.resetTachoCount();
 		rightMotor.resetTachoCount();
-		while(leftMotor.getTachoCount() < 120) {
+		while(leftMotor.getTachoCount() > -180) {
+			leftMotor.backward();
+			rightMotor.backward();
+		}
+//		Delay.msDelay(1000);
+		while(leftMotor.getTachoCount() < 0) {
 			leftMotor.forward();
 			rightMotor.forward();
 		}
+		
 		leftMotor.stop();
 		rightMotor.stop();
+		sensor.resetGyroValue();
 		this.offset = 0;
 	}
 	
@@ -346,7 +359,10 @@ public class LQMover {
 		if(pass == false) sensor.ledGreen(true);
 		for(int i = 1; i <= 10; i ++) {
 			sensor.readAllSensors();
-			sensor.getGyroValue();
+			int gyro = sensor.getGyroValue();
+			if(gyro < -3000 || gyro > 3000) {
+				rotate(0, true);
+			}
 			
 			/* black */
 			if(pass == false) {
@@ -361,6 +377,7 @@ public class LQMover {
 						rightMotor.stop();
 						Delay.msDelay(100);
 						this.offset = this.offset - sensor.getGyroValue();
+						sensor.ledGreen(false);
 						return BLACK;
 					}
 				} else {
@@ -503,6 +520,7 @@ public class LQMover {
 		setOffset(ANGLE-offset);
 		sensor.ledGreen(true);
 		if(sensor.isWallFront()) {
+//			Sound.beep();
 			setParallel(45);	
 		} else if(back == true) {
 			backWall();
@@ -553,13 +571,13 @@ public class LQMover {
 				curDirection += (curDirection > 0) ? -36000 : 36000; 
 			}
 			/* ñ⁄ïWäpìxÇ…ìûíBÇ∑ÇÈÇΩÇﬂÇÃï˚å¸èCê≥ */
-			if(curDirection > -50 && curDirection < 50) {
+			if(curDirection > -150 && curDirection < 150) {
 				break;
 			} else {
 				if(pass == false) {
 					/* îMåπåüím(ñ¢í âﬂÇÃÇ›) */
 					sensor.readAllSensors();
-					if(direction < 0 && sensor.irDistRightValue < 80 &&  curDirection > 1500 && sensor.tempRightValue > tempThreshold) {
+					if(direction < 0 && sensor.irDistRightValue < 80 &&  curDirection > 3000 && sensor.tempRightValue > tempThreshold) {
 						if(tmp_cnt >= 2) {
 							//îÌç–é“åüím(ç∂âÒì], âEë§)
 							rotate(gyro - 9000, true);//åªç›ÇÃäpìx-90ìxâÒì](îÌç–é“Ç…îwÇå¸ÇØÇÈ)
@@ -571,7 +589,7 @@ public class LQMover {
 							pass = true;
 						}
 						tmp_cnt ++;
-					} else if(direction > 0 && sensor.irDistLeftValue < 80 && curDirection < -1500 && sensor.tempLeftValue > tempThreshold) {
+					} else if(direction > 0 && sensor.irDistLeftValue < 80 && curDirection < -3000 && sensor.tempLeftValue > tempThreshold) {
 						if(tmp_cnt >= 2) {
 							//îÌç–é“åüím(âEâÒì], ç∂ë§)
 							rotate(gyro + 9000, true);//åªç›ÇÃäpìx+90ìxâÒì](îÌç–é“Ç…îwÇå¸ÇØÇÈ)
@@ -591,7 +609,7 @@ public class LQMover {
 				if(Math.abs(curDirection) > 1500) {
 					speed = 80;
 				} else {
-					speed = (byte) (40 + Math.abs(curDirection) / 1500 * 40);
+					speed = 40;//(byte) (40 + Math.abs(curDirection) / 1500 * 20);
 				}
 				leftMotor.setPower(speed);
 				rightMotor.setPower(speed);

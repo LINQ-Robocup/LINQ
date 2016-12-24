@@ -5,6 +5,7 @@ import lejos.nxt.LCD;
 import lejos.nxt.MotorPort;
 import lejos.nxt.NXTMotor;
 import lejos.nxt.SensorPort;
+import lejos.nxt.Sound;
 import lejos.nxt.addon.CruizcoreGyro;
 import lejos.nxt.addon.RCXLightSensor;
 import lejos.nxt.comm.RS485;
@@ -97,31 +98,35 @@ public class LQSensor {
 				gyro.reset();
 			}
 			readAllSensors();
+			int gyroValue = getGyroValue();
+//			if(gyroValue == 0) {
+//				Sound.beep();
+//			}
 			LCD.clear();
 			switch (menu) {
-			case 0:
-				//FR 1 / R 2/  L 3 / FL 4
-				LCD.drawString("IRDIST_FL", 0, 0);	LCD.drawInt(irDistFLeftValue, showValueOffset, 0);
-				LCD.drawString("IRDIST_FR", 0, 1);	LCD.drawInt(irDistFRightValue, showValueOffset, 1);
-				LCD.drawString("IRDIST_L", 0, 2);	LCD.drawInt(irDistLeftValue, showValueOffset, 2);
-				LCD.drawString("IRDIST_R", 0, 3);	LCD.drawInt(irDistRightValue, showValueOffset, 3);
-				LCD.drawString("TEMP_R", 0, 4);		LCD.drawInt(tempRightValue, showValueOffset, 4);
-				LCD.drawString("TEMP_L", 0, 5);		LCD.drawInt(tempLeftValue, showValueOffset, 5);
-				LCD.drawString("SR", 0, 6); 		LCD.drawInt(srValue, showValueOffset, 6);
-				break;
 			case 1:
-				LCD.drawString("TOUCH_L", 0, 0);	LCD.drawString(isLeftTouchPressed() ? "true" : "false", showValueOffset, 0);
-				LCD.drawString("TOUCH_R", 0, 1);	LCD.drawString(isRightTouchPressed() ? "true" : "false", showValueOffset, 1);
-				LCD.drawString("LIGHT"	, 0, 2);	LCD.drawInt(light_right.getLightValue(), showValueOffset, 2);
-				LCD.drawString("GYRO"	, 0, 3);	LCD.drawInt(getGyroValue(), showValueOffset, 3);
-				LCD.drawString("ACCEL_X", 0, 4);	LCD.drawInt(getAccelXValue(), showValueOffset, 4);
-				LCD.drawString("ACCEL_Y", 0, 5);	LCD.drawInt(getAccelYValue(), showValueOffset, 5);
-				LCD.drawString("ACCEL_Z", 0, 6);	LCD.drawInt(getAccelZValue(), showValueOffset, 6);
+				//FR 1 / R 2/  L 3 / FL 4
+				LCD.drawString("IRDIST_FL",	0, 0);	LCD.drawInt(irDistFLeftValue,	showValueOffset, 0);
+				LCD.drawString("IRDIST_FR", 0, 1);	LCD.drawInt(irDistFRightValue,	showValueOffset, 1);
+				LCD.drawString("IRDIST_L",	0, 2);	LCD.drawInt(irDistLeftValue,	showValueOffset, 2);
+				LCD.drawString("IRDIST_R",	0, 3);	LCD.drawInt(irDistRightValue,	showValueOffset, 3);
+				LCD.drawString("TEMP_R",	0, 4);	LCD.drawInt(tempRightValue,		showValueOffset, 4);
+				LCD.drawString("TEMP_L",	0, 5);	LCD.drawInt(tempLeftValue, 		showValueOffset, 5);
+				LCD.drawString("SR",		0, 6); 	LCD.drawInt(srValue, 			showValueOffset, 6);
+				break;
+			case 0:
+				LCD.drawString("TOUCH_L", 	0, 0);	LCD.drawString(isLeftTouchPressed() ? "true" : "false", showValueOffset, 0);
+				LCD.drawString("TOUCH_R", 	0, 1);	LCD.drawString(isRightTouchPressed() ? "true" : "false", showValueOffset, 1);
+				LCD.drawString("LIGHT"	, 	0, 2);	LCD.drawInt(light_right.getLightValue(), showValueOffset, 2);
+				LCD.drawString("GYRO"	, 	0, 3);	LCD.drawInt(gyroValue, showValueOffset, 3);
+				LCD.drawString("ACCEL_X", 	0, 4);	LCD.drawInt(getAccelXValue(), showValueOffset, 4);
+				LCD.drawString("ACCEL_Y", 	0, 5);	LCD.drawInt(getAccelYValue(), showValueOffset, 5);
+				LCD.drawString("ACCEL_Z", 	0, 6);	LCD.drawInt(getAccelZValue(), showValueOffset, 6);
 				break;
 			case 2:
-				LCD.drawString("isWallR", 0, 0);	LCD.drawInt(isWallRight() ? 1 : 0, showValueOffset, 0);
-				LCD.drawString("isWallL", 0, 1);	LCD.drawInt(isWallLeft()  ? 1 : 0, showValueOffset, 1);
-				LCD.drawString("isWallF", 0, 2);	LCD.drawInt(isWallFront() ? 1 : 0, showValueOffset, 2);
+				LCD.drawString("isWallR", 	0, 0);	LCD.drawInt(isWallRight() ? 1 : 0, showValueOffset, 0);
+				LCD.drawString("isWallL",	0, 1);	LCD.drawInt(isWallLeft()  ? 1 : 0, showValueOffset, 1);
+				LCD.drawString("isWallF",	0, 2);	LCD.drawInt(isWallFront() ? 1 : 0, showValueOffset, 2);
 			default:
 				break;
 			}
@@ -184,7 +189,7 @@ public class LQSensor {
 	}
 	
 	public boolean isWallLeft() {
-		int threshold = 100;
+		int threshold = 120;
 		readAllSensors();
 //		if(getValue(IRDIST_L) < threshold) {
 		if(irDistLeftValue < threshold) {
@@ -194,20 +199,20 @@ public class LQSensor {
 		}
 	}
 	public boolean isWallRight() {
-		int threshold = 100;
-		readAllSensors();
-//		if(getValue(IRDIST_R) < threshold) {
-		if(irDistRightValue < threshold) {
+		int threshold = 120;
+//		readAllSensors();
+		if(getValue(IRDIST_R) < threshold) {
+//		if(irDistRightValue < threshold) {
 			return true;
 		}else{
 			return false;
 		}
 	}
 	public boolean isWallFront() {
-		int threshold = 20;
+		int threshold = 120;
 //		if(getValue(SRDIST) < threshold) {
 		readAllSensors();
-		if(srValue < threshold) {
+		if(irDistFLeftValue < threshold && irDistFRightValue < threshold) {
 			return true;
 		}else{
 			return false;
