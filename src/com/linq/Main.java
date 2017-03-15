@@ -13,6 +13,32 @@ public class Main extends MapInfo {
 //		final byte x_d[] = {1, 0, -1, 0};
 //		final byte y_d[] = {0, 1, 0, -1};
 		
+		//nikuman
+		LQMbedSensors test = new LQMbedSensors();
+		test.toggleLed1(true);
+		test.toggleLed2(true);
+		test.toggleLed3(true);
+		test.rotateServoLeft();
+		Delay.msDelay(1000);
+		sensor.servo.setPower(0);
+		while (Button.ENTER.isDown());
+		while (!Button.ENTER.isDown()) {
+			for(int i = 0;;i++) {
+				test.readMbedSensorsValue();
+				test.showSensorValues();
+////				LCD.drawString("ERROR", 10, 5); LCD.drawInt(i, 10, 6);
+//				if(test.dummyValue != 111) {
+//					Sound.beep();
+//					LCD.clear();
+//					LCD.drawString("ERROR", 10, 5); LCD.drawInt(i, 10, 6);
+//					while (Button.ENTER.isDown());
+//					while (!Button.ENTER.isDown());
+//				}
+			}
+		}
+		
+		
+		
 		/* センサー情報のデバッグ出力 */
 		while (Button.ENTER.isDown());
 		while (!Button.ENTER.isDown()) {
@@ -45,29 +71,30 @@ public class Main extends MapInfo {
 //			Delay.msDelay(1000);
 			if(map.curPos.getWallRight() == map.UNKNOWN) {
 				map.curPos.setWallRight(sensor.isWallRight() ? map.WALL : map.FLAG);
-				//map.arrangeMap();
+				map.arrangeMap();
 			}
 			if(map.curPos.getWallFront() == map.UNKNOWN) {
 				map.curPos.setWallFront(sensor.isWallFront() ? map.WALL : map.FLAG);
-				//map.arrangeMap();
+				map.arrangeMap();
 			}
 			if(map.curPos.getWallLeft() == map.UNKNOWN) {
 				map.curPos.setWallLeft(sensor.isWallLeft() ? map.WALL : map.FLAG);
-				//map.arrangeMap();
+				map.arrangeMap();
 			}
 			if(map.curPos.getWallBack() == map.UNKNOWN) {
 				if(map.curPos.room == 0) {
-					if(sensor.isWallRight()) {
-						motion.turnRight(true);
-						map.curPos.setWallBack(sensor.isWallRight() ? map.WALL : map.FLAG);
-						//map.arrangeMap();
-						motion.turnLeft(true);
-					} else {
-						motion.turnLeft(true);
-						map.curPos.setWallBack(sensor.isWallLeft() ? map.WALL : map.FLAG);
-						//map.arrangeMap();
-						motion.turnRight(true);
-					}
+					map.curPos.setWallBack(map.WALL);
+//					if(sensor.isWallRight()) {
+//						motion.turnRight(true, false);
+//						map.curPos.setWallBack(sensor.isWallRight() ? map.WALL : map.FLAG);
+//						//map.arrangeMap();
+//						motion.turnLeft(true, false);
+//					} else {
+//						motion.turnLeft(true, false);
+//						map.curPos.setWallBack(sensor.isWallLeft() ? map.WALL : map.FLAG);
+//						//map.arrangeMap();
+//						motion.turnRight(true, false);
+//					}
 				}
 			}
 			map.arrangeMap();
@@ -117,17 +144,17 @@ public class Main extends MapInfo {
 //			Delay.msDelay(1000);
 			switch(direction) {
 				case 0:
-					motion.turnRight(map.curPos.isPassedThrough());
+					motion.turnRight(map.curPos.isPassedThrough(), map.curPos.getWallLeft() == map.WALL ? true : false);
 					map.curPos.changeDirec(map.RIGHT);
 					break;
 				case 2:
-					motion.turnLeft(map.curPos.isPassedThrough());
+					motion.turnLeft(map.curPos.isPassedThrough(), map.curPos.getWallRight() == map.WALL ? true : false);
 					map.curPos.changeDirec(map.LEFT);
 					break;
 				case 3:
-					motion.turnLeft(true);
+					motion.turnLeft(true, map.curPos.getWallRight() == map.WALL ? true : false);
 					map.curPos.changeDirec(map.LEFT);
-					motion.turnLeft(true);
+					motion.turnLeft(true, map.curPos.getWallRight() == map.WALL ? true : false);
 					map.curPos.changeDirec(map.LEFT);
 					break;
 				default:
@@ -163,9 +190,9 @@ public class Main extends MapInfo {
 							break;
 						} else {
 							if(!sensor.isWallRight()) {
-								motion.turnRight(true);
+								motion.turnRight(true, map.curPos.getWallLeft() == map.WALL ? true : false);
 							} else if(!sensor.isWallLeft()) {
-								motion.turnLeft(true);
+								motion.turnLeft(true, map.curPos.getWallRight() == map.WALL ? true : false);
 							}
 							motion.downRamp();
 							map.changePrevRoom();

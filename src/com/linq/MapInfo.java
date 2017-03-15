@@ -373,6 +373,7 @@ public class MapInfo {
 			}
 			if(map[curPos.room][HEIGHT-1][i] == FLAG) {
 				//‰ºƒVƒtƒg
+				Sound.beep();
 				for(byte j = 0; j < WIDTH; j++) {
 					for(byte k = 0; k < HEIGHT-2; k++) {
 						map[curPos.room][k][j] = map[curPos.room][k+2][j];
@@ -382,6 +383,7 @@ public class MapInfo {
 				}
 				curPos.shiftY(true);
 				shiftDoorwayY(true);
+				Sound.beep();
 				break;
 			}
 		}

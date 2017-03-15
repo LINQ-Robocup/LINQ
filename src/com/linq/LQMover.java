@@ -191,15 +191,17 @@ public class LQMover {
 		byte speed = 50;
 		leftMotor.setPower(speed);
 		rightMotor.setPower(speed);
-		
+		leftMotor.backward();
+		rightMotor.backward();
+		Delay.msDelay(1000);
 		leftMotor.resetTachoCount();
 		rightMotor.resetTachoCount();
-		while(leftMotor.getTachoCount() > -180) {
-			leftMotor.backward();
-			rightMotor.backward();
-		}
+//		while(leftMotor.getTachoCount() > -270) {
+//			leftMotor.backward();
+//			rightMotor.backward();
+//		}
 //		Delay.msDelay(1000);
-		while(leftMotor.getTachoCount() < 0) {
+		while(leftMotor.getTachoCount() < 180) {
 			leftMotor.forward();
 			rightMotor.forward();
 		}
@@ -324,9 +326,9 @@ public class LQMover {
 		leftMotor.stop();
 		rightMotor.stop();
 		setParallel(40);
-		turnRight(true);
+		turnRight(true, false);
 		setParallel(40);
-		turnLeft(true);
+		turnLeft(true, true);
 		setParallel(40);
 	}
 	
@@ -360,7 +362,7 @@ public class LQMover {
 		for(int i = 1; i <= 10; i ++) {
 			sensor.readAllSensors();
 			int gyro = sensor.getGyroValue();
-			if(gyro < -3000 || gyro > 3000) {
+			if(gyro < -1500 || gyro > 1500) {
 				rotate(0, true);
 			}
 			
@@ -483,7 +485,7 @@ public class LQMover {
 				break;
 			}
 		}
-		this.offset = this.offset - sensor.getGyroValue();
+		//this.offset = this.offset - sensor.getGyroValue();
 		sensor.ledGreen(false);
 		if(silverCount >= 3) {
 			return SILVER;
@@ -503,7 +505,7 @@ public class LQMover {
 	 * 90度右回転
 	 * @param pass : true)通過済み, false)未通過・被災者探索(左側)
 	 */
-	public void turnRight(boolean pass) {
+	public void turnRight(boolean pass, boolean leftWall) {
 		final int ANGLE = 9000;//時計回り90度
 		boolean back = false;
 		leftMotor.stop();
@@ -517,12 +519,11 @@ public class LQMover {
 		rotate(ANGLE, pass);
 		leftMotor.stop();
 		rightMotor.stop();
-		setOffset(ANGLE-offset);
+		//setOffset(ANGLE-offset);
 		sensor.ledGreen(true);
 		if(sensor.isWallFront()) {
-//			Sound.beep();
 			setParallel(45);	
-		} else if(back == true) {
+		} else if(leftWall == true) {
 			backWall();
 		}
 	}
@@ -531,7 +532,7 @@ public class LQMover {
 	 * 90度左回転
 	 * @param pass : true)通過済み, false)未通過・被災者探索(右側)
 	 */
-	public void turnLeft(boolean pass) {
+	public void turnLeft(boolean pass, boolean rightWall) {
 		final int ANGLE = -9000;//反時計回り90度
 		boolean back = false;
 		leftMotor.stop();
@@ -545,7 +546,7 @@ public class LQMover {
 		rotate(ANGLE, pass);
 		leftMotor.stop();
 		rightMotor.stop();
-		setOffset(ANGLE-offset);
+		//setOffset(ANGLE-offset);
 		sensor.ledGreen(false);
 		if(sensor.isWallFront()) {
 			setParallel(45);

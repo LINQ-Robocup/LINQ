@@ -40,7 +40,7 @@ public class LQSensor {
 	public RCXLightSensor light_left;
 	public RCXLightSensor light_right;	//light sensor
 	public CruizcoreGyro gyro;
-	private NXTMotor servo;
+	public NXTMotor servo;
 	
 	private byte send[] = new byte[2];
 	private byte get[] = new byte[7];
