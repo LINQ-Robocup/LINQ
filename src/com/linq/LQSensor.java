@@ -55,11 +55,7 @@ public class LQSensor {
 		light_right.setFloodlight(true);
 
 		gyro = new CruizcoreGyro(SensorPort.S3);
-		
-		servo = new NXTMotor(MotorPort.C);
-		servo.setPower(100);
-		servo.forward();
-		
+
 		ledGreen(false);
 		ledYellow(false);
 		ledRed(false);

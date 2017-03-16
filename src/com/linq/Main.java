@@ -15,12 +15,14 @@ public class Main extends MapInfo {
 		
 		//nikuman
 		LQMbedSensors test = new LQMbedSensors();
-		test.toggleLed1(true);
-		test.toggleLed2(true);
-		test.toggleLed3(true);
-		test.rotateServoLeft();
-		Delay.msDelay(1000);
-		sensor.servo.setPower(0);
+		
+		test.toggleLedBlue(true);
+		test.toggleLedGreen(true);
+		test.toggleLedYellow(true);
+		
+		test.rotateServo();
+		test.debugLeds();
+		
 		while (Button.ENTER.isDown());
 		while (!Button.ENTER.isDown()) {
 			for(int i = 0;;i++) {
