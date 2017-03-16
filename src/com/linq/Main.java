@@ -1,6 +1,7 @@
 package com.linq;
 
 import lejos.nxt.*;
+import lejos.nxt.comm.RConsole;
 import lejos.util.Delay;
 
 public class Main extends MapInfo {
@@ -14,32 +15,23 @@ public class Main extends MapInfo {
 //		final byte y_d[] = {0, 1, 0, -1};
 		
 		//nikuman
-		LQMbedSensors test = new LQMbedSensors();
+//		RConsole.openUSB(5000);
 		
-		test.toggleLedBlue(true);
-		test.toggleLedGreen(true);
-		test.toggleLedYellow(true);
+		LQMbedSensors mbed = new LQMbedSensors();
+		LQNXTSensors nxt = new LQNXTSensors();
 		
-		test.rotateServo();
-		test.debugLeds();
+		LCD.clear();
 		
-		while (Button.ENTER.isDown());
-		while (!Button.ENTER.isDown()) {
-			for(int i = 0;;i++) {
-				test.readMbedSensorsValue();
-				test.showSensorValues();
-////				LCD.drawString("ERROR", 10, 5); LCD.drawInt(i, 10, 6);
-//				if(test.dummyValue != 111) {
-//					Sound.beep();
-//					LCD.clear();
-//					LCD.drawString("ERROR", 10, 5); LCD.drawInt(i, 10, 6);
-//					while (Button.ENTER.isDown());
-//					while (!Button.ENTER.isDown());
-//				}
-			}
+		mbed.debugLeds();
+		mbed.debugServo();
+		mbed.debugAllSensors();
+		
+		LCD.clear();
+		LCD.drawInt((int)mbed.calcReadingSpeed(1000), 1, 2);
+		while (Button.ESCAPE.isDown());
+		while (!Button.ESCAPE.isDown()) {
+			
 		}
-		
-		
 		
 		/* センサー情報のデバッグ出力 */
 		while (Button.ENTER.isDown());

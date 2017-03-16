@@ -7,6 +7,8 @@ import lejos.nxt.NXTMotor;
 import lejos.nxt.Sound;
 import lejos.nxt.comm.RS485;
 import lejos.util.Delay;
+import lejos.util.LogColumn;
+import lejos.util.Stopwatch;
 
 public class LQMbedSensors {
 	
@@ -24,125 +26,166 @@ public class LQMbedSensors {
 	public byte sonicValue			= 0;
 	public byte dummyValue 			= 0;
 	private final byte errorValue 	= 111;
-	
+
 	private NXTMotor servo;
 
 	public LQMbedSensors() {
 		RS485.hsEnable(9600, 0);
-		servo = new NXTMotor(MotorPort.C);
-		servo.setPower(100);
-//		servo.stop();
-		servo.forward();
+		this.servo = new NXTMotor(MotorPort.C);
+		this.servo.setPower(0);
+		this.servo.stop();
 	}
 	
-	public void readMbedSensorsValue () {
+	public void readAllSensors () {
 //		do {
 //			readAllSensors();
 //		} while(dummyValue != errorValue);
-		Delay.msDelay(1);
-		readAllSensors();
-		if(dummyValue != errorValue) {
-//			Sound.beep();
-			readAllSensors();
-		}
-	}
-	public void readSonicValue() {
-		_readSonicValue();
-		if(dummyValue != errorValue) {
+		this._readAllSensors();
+		while(this.dummyValue != this.errorValue) {
 			Sound.beep();
-			_readSonicValue();
+			this._readAllSensors();
+			Delay.msDelay(10);
+		}
+	}	
+	private void _readAllSensors() {
+		this.send[0] = 1;
+		RS485.hsWrite(this.send, 0, 1);
+		RS485.hsRead(this.get, 0, 8);
+		this.distFrontLeftValue	= this.get[0];
+		this.distFrontRightValue= this.get[1];
+		this.distLeftValue 		= this.get[2];
+		this.distRightValue		= this.get[3];
+		this.tempLeftValue		= this.get[4];
+		this.tempRightValue		= this.get[5];
+		this.sonicValue			= this.get[6];
+		this.dummyValue			= this.get[7];
+	}
+
+	public void readSonicSensor() {
+		this.send[0] = 2;
+		RS485.hsWrite(this.send, 0, 1);
+		Delay.msDelay(1000);
+		this._readAllSensors();
+		while(this.dummyValue != this.errorValue || this.sonicValue == -1) {
+			Sound.beep();
+			showSensorValues();
+			this._readAllSensors();
 		}
 	}
-	public void _readSonicValue() {
-		send[0] = 2;
-		RS485.hsWrite(send, 0, 1);
-		RS485.hsRead(get, 0, 2);
-		sonicValue = get[0];
-		dummyValue = get[1];
-	}
-	
-	private void readAllSensors() {
-		send[0] = 1;
-		RS485.hsWrite(send, 0, 1);
-		RS485.hsRead(get, 0, 7);
-		distFrontLeftValue	= get[0];
-		distFrontRightValue		= get[1];
-		distLeftValue = get[2];
-		distRightValue	= get[3];
-		tempLeftValue		= get[4];
-		tempRightValue		= get[5];
-		dummyValue			= get[6];
-	}
-	
+//	public void disableSonicSensor() {
+//		this.send[0] = 3;
+//		RS485.hsWrite(this.send, 0, 1);
+//		Delay.msDelay(10);
+//	}
 	public void toggleLedBlue(boolean sw) {
 		if(sw == true) {
-			send[0] = 20;
-			RS485.hsWrite(send, 0, 1);
+			this.send[0] = 20;
+			RS485.hsWrite(this.send, 0, 1);
 			Delay.msDelay(10);
 		}else{
-			send[0] = 21;
-			RS485.hsWrite(send, 0, 1);
+			this.send[0] = 21;
+			RS485.hsWrite(this.send, 0, 1);
 			Delay.msDelay(10);
 		}
 	}
 	public void toggleLedGreen(boolean sw) {
 		if(sw == true) {
-			send[0] = 22;
-			RS485.hsWrite(send, 0, 1);
+			this.send[0] = 22;
+			RS485.hsWrite(this.send, 0, 1);
 			Delay.msDelay(10);
 		}else{
-			send[0] = 23;
-			RS485.hsWrite(send, 0, 1);
+			this.send[0] = 23;
+			RS485.hsWrite(this.send, 0, 1);
 			Delay.msDelay(10);
 		}
 	}
 	public void toggleLedYellow(boolean sw) {
 		if(sw == true) {
-			send[0] = 24;
-			RS485.hsWrite(send, 0, 1);
+			this.send[0] = 24;
+			RS485.hsWrite(this.send, 0, 1);
 			Delay.msDelay(10);
 		}else{
-			send[0] = 25;
-			RS485.hsWrite(send, 0, 1);
+			this.send[0] = 25;
+			RS485.hsWrite(this.send, 0, 1);
 			Delay.msDelay(10);
 		}
 	}
 	public void rotateServo() {
-		servo.setPower(100);
-		servo.forward();
-		send[0] = 30;
-		RS485.hsWrite(send, 0, 1);
-		Delay.msDelay(600);
-		servo.setPower(0);
-		servo.stop();
+		this.servo.setPower(100);
+		this.servo.forward();
+		this.send[0] = 30;
+		RS485.hsWrite(this.send, 0, 1);
+		Delay.msDelay(900);
+		this.servo.setPower(0);
+		this.servo.stop();
 	}
 	public void showSensorValues() {
-		LCD.drawString("FL", 0, 0); LCD.drawInt(distFrontLeftValue, 10, 0);
-		LCD.drawString("FR", 0, 1); LCD.drawInt(distFrontRightValue, 10, 1);
-		LCD.drawString("L", 0, 2); LCD.drawInt(distLeftValue, 10, 2);
-		LCD.drawString("R", 0, 3); LCD.drawInt(distRightValue, 10, 3);
-		LCD.drawString("TL", 0, 4); LCD.drawInt(tempLeftValue, 10, 4);
-		LCD.drawString("TR", 0, 5); LCD.drawInt(tempRightValue, 10, 5);
-		LCD.drawString("U", 0, 6); LCD.drawInt(sonicValue, 10, 6);
-		LCD.drawString("DUMMY", 0, 7); LCD.drawInt(dummyValue, 10, 7);
 		Delay.msDelay(50);
 		LCD.clear();
+		LCD.drawString("FL", 0, 0); LCD.drawInt(this.distFrontLeftValue, 10, 0);
+		LCD.drawString("FR", 0, 1); LCD.drawInt(this.distFrontRightValue, 10, 1);
+		LCD.drawString("L", 0, 2); LCD.drawInt(this.distLeftValue, 10, 2);
+		LCD.drawString("R", 0, 3); LCD.drawInt(this.distRightValue, 10, 3);
+		LCD.drawString("TL", 0, 4); LCD.drawInt(this.tempLeftValue, 10, 4);
+		LCD.drawString("TR", 0, 5); LCD.drawInt(this.tempRightValue, 10, 5);
+		LCD.drawString("U", 0, 6); LCD.drawInt(this.sonicValue, 10, 6);
+		LCD.drawString("DUMMY", 0, 7); LCD.drawInt(this.dummyValue, 10, 7);
 	}
-	
+	public void debugAllSensors() {
+		while(Button.ESCAPE.isDown());
+		
+		while (!Button.ESCAPE.isDown()) {
+			if(Button.ENTER.isDown()) {
+				this.readSonicSensor();
+				Sound.playTone(440, 500);
+			}else{
+				this.readAllSensors();
+				this.showSensorValues();	
+			}
+		}
+	}
+/*===========================================================================*/	
+
+	public long calcReadingSpeed(int count) {
+		Stopwatch timer = new Stopwatch();
+		timer.reset();
+		for(int i = 0; i < count; i++) {
+			this.readAllSensors();
+		}
+		long time = timer.elapsed();
+		return time / count;
+	}
+	/*===========================================================================*/	
+	public void debugServo() {
+		while (Button.ESCAPE.isDown());
+		
+		LCD.clear();
+		LCD.drawString("SERVO: ENTER", 2, 1);
+		LCD.drawString("EXIT: ESCAPE", 2, 5);
+		
+		while(!Button.ESCAPE.isDown()) {
+			if(Button.ENTER.isDown()) {
+				LCD.drawString("ROTATING", 2, 2);
+				this.rotateServo();
+				LCD.clear(2);
+				LCD.drawString("END", 2, 2);
+			}
+		}
+	}
 	public void debugLeds() {
 		boolean debugledBlue = false;
 		boolean debugledGreen = false;
 		boolean debugledYellow = false;
-		
 		
 		int pointer = 1;
 		while(!Button.ESCAPE.isDown()) {
 			LCD.clear();
 			LCD.drawString("BLUE", 10, 1); 
 			LCD.drawString("GREEN", 10, 2);
-			LCD.drawString("RED", 10, 3);
+			LCD.drawString("YELLOW", 10, 3);
+			LCD.drawString("EXIT: ESCAPE", 2, 5);
 			
-			LCD.drawString("O", 1, pointer);
+			LCD.drawString(">", 1, pointer);
 			
 			
 			if(Button.LEFT.isDown()) {
@@ -159,24 +202,24 @@ public class LQMbedSensors {
 			
 			if(debugledBlue) {
 				LCD.drawString("ON", 5, 1);
-				toggleLedBlue(true);
+				this.toggleLedBlue(true);
 			}else{
 				LCD.drawString("OFF", 5, 1);
-				toggleLedBlue(false);
+				this.toggleLedBlue(false);
 			}
 			if(debugledGreen) {
 				LCD.drawString("ON", 5, 2);
-				toggleLedGreen(true);
+				this.toggleLedGreen(true);
 			}else{
 				LCD.drawString("OFF", 5, 2);
-				toggleLedGreen(false);
+				this.toggleLedGreen(false);
 			}
 			if(debugledYellow) {
 				LCD.drawString("ON", 5, 3);
-				toggleLedYellow(true);
+				this.toggleLedYellow(true);
 			}else{
 				LCD.drawString("OFF", 5, 3);
-				toggleLedYellow(false);
+				this.toggleLedYellow(false);
 			}
 			
 			if(Button.ENTER.isDown()) {
