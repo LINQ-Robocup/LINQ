@@ -1,15 +1,13 @@
 package com.linq;
 
-import java.util.Timer;
-
 import lejos.nxt.Button;
 import lejos.nxt.LCD;
 import lejos.nxt.NXTMotor;
 import lejos.nxt.SensorPort;
+import lejos.nxt.Sound;
 import lejos.nxt.addon.CruizcoreGyro;
 import lejos.nxt.addon.RCXLightSensor;
 import lejos.util.Delay;
-import lejos.util.Stopwatch;
 
 public class LQNXTSensors {
 
@@ -46,19 +44,33 @@ public class LQNXTSensors {
 	}
 /*===========================================================================*/
 	public void debugSensors() {
-		int showValueOffset = 10;
-		LCD.clear();
-		LCD.drawString("TOUCH_L", 	0, 0);	LCD.drawString(isLeftTouchPressed() ? "true" : "false", showValueOffset, 0);
-		LCD.drawString("TOUCH_R", 	0, 1);	LCD.drawString(isRightTouchPressed() ? "true" : "false", showValueOffset, 1);
-		LCD.drawString("LIGHT"	, 	0, 2);	LCD.drawInt(this.getLightValue(), showValueOffset, 2);
-		LCD.drawString("GYRO"	, 	0, 3);	LCD.drawInt(this.getGyroValue(), showValueOffset, 3);
-		LCD.drawString("ACCEL_X", 	0, 4);	LCD.drawInt(this.getAccelXValue(), showValueOffset, 4);
-		LCD.drawString("ACCEL_Y", 	0, 5);	LCD.drawInt(this.getAccelYValue(), showValueOffset, 5);
-		LCD.drawString("ACCEL_Z", 	0, 6);	LCD.drawInt(this.getAccelZValue(), showValueOffset, 6);
-		if(Button.ENTER.isDown()) {
-			this.resetGyroValue();
+		final byte showValueOffset = 10;
+		while(!Button.ESCAPE.isDown()) {
+			LCD.clear();
+			LCD.drawString("TOUCH_L", 0, 0);	LCD.drawString(isLeftTouchPressed() ? "true" : "false",	showValueOffset, 0);
+			LCD.drawString("TOUCH_R", 0, 1);	LCD.drawString(isRightTouchPressed() ? "true" : "false", showValueOffset, 1);
+			LCD.drawString("LIGHT"	, 0, 2);	LCD.drawInt(this.getLightValue(), 	showValueOffset, 2);
+			LCD.drawString("GYRO"	, 0, 3);	LCD.drawInt(this.getGyroValue(), 	showValueOffset, 3);
+			LCD.drawString("ACCEL_X", 0, 4);	LCD.drawInt(this.getAccelXValue(), 	showValueOffset, 4);
+			LCD.drawString("ACCEL_Y", 0, 5);	LCD.drawInt(this.getAccelYValue(), 	showValueOffset, 5);
+			LCD.drawString("ACCEL_Z", 0, 6);	LCD.drawInt(this.getAccelZValue(), 	showValueOffset, 6);
+			if(Button.ENTER.isDown()) {
+				while(Button.ENTER.isDown());
+				this.resetGyroValue();
+			}
+			Delay.msDelay(20);
 		}
-		Delay.msDelay(20);
+		while(Button.ESCAPE.isDown());
+	}
+	
+	public void isSensorConnected() {
+		if( getAccelZValue() != 0) {
+			return;
+		}
+		Sound.beep();
+		LCD.clear();
+		LCD.drawString("XGL CONNECTION ERROR!", 0, 0);
+		while(true);
 	}
 
 /*===========================================================================*/	
@@ -67,7 +79,12 @@ public class LQNXTSensors {
 		return gyro.getAngle();
 	}
 	public void resetGyroValue() {
-		gyro.reset();
+		while(true) {
+			gyro.reset();
+			if(getAccelZValue() != 0) {
+				break;
+			}
+		}
 	}
 	public int getAccelXValue() {
 		return gyro.getAccel(0);

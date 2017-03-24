@@ -7,8 +7,6 @@ import lejos.nxt.NXTMotor;
 import lejos.nxt.Sound;
 import lejos.nxt.comm.RS485;
 import lejos.util.Delay;
-import lejos.util.LogColumn;
-import lejos.util.Stopwatch;
 
 public class LQMbedSensors {
 	
@@ -33,20 +31,17 @@ public class LQMbedSensors {
 		RS485.hsEnable(9600, 0);
 		this.servo = new NXTMotor(MotorPort.C);
 		this.servo.setPower(0);
-		this.servo.stop();
 	}
 	
 	public void readAllSensors () {
-//		do {
-//			readAllSensors();
-//		} while(dummyValue != errorValue);
-		this._readAllSensors();
-		while(this.dummyValue != this.errorValue) {
-			Sound.beep();
+		while(true) {
 			this._readAllSensors();
+			if(this.dummyValue == this.errorValue) break;
+			Sound.beep();
 			Delay.msDelay(10);
 		}
-	}	
+	}
+	
 	private void _readAllSensors() {
 		this.send[0] = 1;
 		RS485.hsWrite(this.send, 0, 1);
@@ -72,11 +67,7 @@ public class LQMbedSensors {
 			this._readAllSensors();
 		}
 	}
-//	public void disableSonicSensor() {
-//		this.send[0] = 3;
-//		RS485.hsWrite(this.send, 0, 1);
-//		Delay.msDelay(10);
-//	}
+
 	public void toggleLedBlue(boolean sw) {
 		if(sw == true) {
 			this.send[0] = 20;
@@ -111,14 +102,20 @@ public class LQMbedSensors {
 		}
 	}
 	public void rotateServo() {
-		this.servo.setPower(100);
 		this.servo.forward();
 		this.send[0] = 30;
 		RS485.hsWrite(this.send, 0, 1);
-		Delay.msDelay(900);
+		Delay.msDelay(1000);
 		this.servo.setPower(0);
-		this.servo.stop();
 	}
+	
+	public void dropRescueKit() {
+		this.servo.setPower(100);
+		Delay.msDelay(4000);
+		rotateServo();
+		this.servo.setPower(0);
+	}
+	
 	public void showSensorValues() {
 		Delay.msDelay(50);
 		LCD.clear();
@@ -132,45 +129,35 @@ public class LQMbedSensors {
 		LCD.drawString("DUMMY", 0, 7); LCD.drawInt(this.dummyValue, 10, 7);
 	}
 	public void debugAllSensors() {
-		while(Button.ESCAPE.isDown());
-		
 		while (!Button.ESCAPE.isDown()) {
 			if(Button.ENTER.isDown()) {
 				this.readSonicSensor();
 				Sound.playTone(440, 500);
 			}else{
-				this.readAllSensors();
+				this._readAllSensors();
 				this.showSensorValues();	
 			}
 		}
+		while(Button.ESCAPE.isDown());
 	}
 /*===========================================================================*/	
 
-	public long calcReadingSpeed(int count) {
-		Stopwatch timer = new Stopwatch();
-		timer.reset();
-		for(int i = 0; i < count; i++) {
-			this.readAllSensors();
-		}
-		long time = timer.elapsed();
-		return time / count;
-	}
-	/*===========================================================================*/	
 	public void debugServo() {
-		while (Button.ESCAPE.isDown());
-		
 		LCD.clear();
 		LCD.drawString("SERVO: ENTER", 2, 1);
 		LCD.drawString("EXIT: ESCAPE", 2, 5);
 		
 		while(!Button.ESCAPE.isDown()) {
 			if(Button.ENTER.isDown()) {
+				this.servo.setPower(100);
 				LCD.drawString("ROTATING", 2, 2);
 				this.rotateServo();
 				LCD.clear(2);
 				LCD.drawString("END", 2, 2);
+				this.servo.setPower(0);
 			}
 		}
+		while(Button.ESCAPE.isDown());
 	}
 	public void debugLeds() {
 		boolean debugledBlue = false;
@@ -241,5 +228,6 @@ public class LQMbedSensors {
 			}
 			Delay.msDelay(50);
 		}
+		while(Button.ESCAPE.isDown());
 	}
 }

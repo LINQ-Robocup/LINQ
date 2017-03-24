@@ -1,5 +1,7 @@
 package com.linq;
 
+import lejos.nxt.LCD;
+
 /**
  * Queue表現するクラス(サイズは固定) 
  * 
@@ -8,21 +10,27 @@ package com.linq;
 public class Queue{
   /* 定数宣言 */
 	//Queue最大サイズ
-	private static final byte SIZE = 127;
+	private final short SIZE = 256;
   /* 変数宣言 */
 	//Queueバッファ
-	private static byte[] queue = new byte[SIZE];
+	private short[] queue = new short[SIZE];
 	//Queueサイズ
-	private static byte queSize = 0;
+	public short queSize = 0;
 	
 	/**
 	 * Queueを初期化
 	 */
 	Queue() {
-		for(short i: queue) {
-			queue[i] = 0;
+		try {
+			for(short i = 0; i < SIZE; i++) {
+				queue[i] = 0;
+			}
+			queSize = 0;
+		} catch(ArrayIndexOutOfBoundsException e) {
+			LCD.clear(0);
+			LCD.drawString("error", 0, 0);
+			while(true);
 		}
-		queSize = 0;
 	}
 	
 	/**
@@ -30,28 +38,40 @@ public class Queue{
 	 * @param data エンキューする値
 	 * @return　エンキューに成功したかどうか?
 	 */
-	public boolean enqueue(byte data) {
-		if(queSize > queue.length) {
-			return false;
+	public boolean enqueue(short data) {
+		try {
+			if(queSize >= SIZE) {
+				return false;
+			}
+			queue[queSize] = data;
+			queSize ++;
+			return true;
+		} catch(ArrayIndexOutOfBoundsException e) {
+			LCD.clear();
+			LCD.drawString("enqueue", 0, 0);
+			while(true);
 		}
-		queue[queSize] = data;
-		queSize ++;
-		return true;
 	}
 	
 	/**
 	 * デキュー(Dequeue)
 	 * @return　デキューした値
 	 */
-	public byte dequeue() {
-		byte data = queue[0];
-		if(!isEmpty()) {
-			for(byte i = 0; i < queue.length-1; i++) {
-				queue[i] = queue[i+1];
+	public short dequeue() {
+		try {
+			short data = queue[0];
+			if(!isEmpty()) {
+				for(short i = 0; i < queue.length-1; i++) {
+					queue[i] = queue[i+1];
+				}
 			}
+			queSize --;
+			return data;
+		} catch(ArrayIndexOutOfBoundsException e) {
+			LCD.clear();
+			LCD.drawString("enqueue", 0, 0);
+			while(true);
 		}
-		queSize --;
-		return data;
 	}
 	
 	/**

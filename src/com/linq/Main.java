@@ -1,193 +1,140 @@
 package com.linq;
 
 import lejos.nxt.*;
-import lejos.nxt.comm.RConsole;
-import lejos.util.Delay;
+//import lejos.nxt.comm.RConsole;
 
-public class Main extends MapInfo {
+public class Main {
+
 	public static void main(String[] args) {
-		/* make instances */
+		/* インスタンス生成・初期化 */
 		LQMover motion = new LQMover(MotorPort.A, MotorPort.B);
-		LQSensor sensor = new LQSensor();
-		
-		MapInfo map = new MapInfo();																																																																	
-//		final byte x_d[] = {1, 0, -1, 0};
-//		final byte y_d[] = {0, 1, 0, -1};
-		
-		//nikuman
+		MapInfo map = new MapInfo(1, 1);																																																																	
 //		RConsole.openUSB(5000);
 		
-		LQMbedSensors mbed = new LQMbedSensors();
-		LQNXTSensors nxt = new LQNXTSensors();
-		
-		LCD.clear();
-		
-		mbed.debugLeds();
-		mbed.debugServo();
-		mbed.debugAllSensors();
-		
-		LCD.clear();
-		LCD.drawInt((int)mbed.calcReadingSpeed(1000), 1, 2);
-		while (Button.ESCAPE.isDown());
-		while (!Button.ESCAPE.isDown()) {
-			
-		}
-		
 		/* センサー情報のデバッグ出力 */
-		while (Button.ENTER.isDown());
-		while (!Button.ENTER.isDown()) {
-			sensor.showAllSensors();
-		}
-		/* マップ情報のリロード・リセット */
-		while(Button.ENTER.isDown());
+		motion.sensorSetup();
+		
+		motion.mbed.dropRescueKit();
+		
+		/* マップ情報のリロード */
+		map.reload();
+		
+		for(byte i = 0; i < 3; i++)
+			motion.tileForward(false);
+		
+		/* 迷路探索 */
+		map.setWallBack(motion.isWallBack() ? MapInfo.WALL : MapInfo.FLAG);
 		while(true) {
-			LCD.drawString("X:" + map.curPos.x + " Y:" + map.curPos.y + " D :" + map.curPos.direc, 0, 0);
-			LCD.drawString("RELOAD -> RIGHT", 0, 1);
-			LCD.drawString("RESET  -> LEFT",  0, 2);
-			LCD.drawString("START  -> ENTER", 0, 3);
-			if(Button.RIGHT.isDown()) 
-				map.readFile();
-			else if(Button.LEFT.isDown())  
-				map.resetFile();
-			else if(Button.ENTER.isDown()) 
-				break;
-		}
-		LCD.clear();
-		while(Button.ENTER.isDown());
-		map.dispMapInfo();
-		while(!Button.ENTER.isDown());
-		while(true) {
-//			LCD.clear();
-//			LCD.drawString("RIHGT: " + map.curPos.getWallRight() , 0, 1);
-//			LCD.drawString("FRONT: " + map.curPos.getWallFront() , 0, 2);
-//			LCD.drawString("LEFT : " + map.curPos.getWallLeft() ,  0, 3);
-//			LCD.drawString("BACK : " + map.curPos.getWallBack() , 0, 4);
-//			Delay.msDelay(1000);
-			if(map.curPos.getWallRight() == map.UNKNOWN) {
-				map.curPos.setWallRight(sensor.isWallRight() ? map.WALL : map.FLAG);
-				map.arrangeMap();
-			}
-			if(map.curPos.getWallFront() == map.UNKNOWN) {
-				map.curPos.setWallFront(sensor.isWallFront() ? map.WALL : map.FLAG);
-				map.arrangeMap();
-			}
-			if(map.curPos.getWallLeft() == map.UNKNOWN) {
-				map.curPos.setWallLeft(sensor.isWallLeft() ? map.WALL : map.FLAG);
-				map.arrangeMap();
-			}
-			if(map.curPos.getWallBack() == map.UNKNOWN) {
-				if(map.curPos.room == 0) {
-					map.curPos.setWallBack(map.WALL);
-//					if(sensor.isWallRight()) {
-//						motion.turnRight(true, false);
-//						map.curPos.setWallBack(sensor.isWallRight() ? map.WALL : map.FLAG);
-//						//map.arrangeMap();
-//						motion.turnLeft(true, false);
-//					} else {
-//						motion.turnLeft(true, false);
-//						map.curPos.setWallBack(sensor.isWallLeft() ? map.WALL : map.FLAG);
-//						//map.arrangeMap();
-//						motion.turnRight(true, false);
-//					}
+			//壁情報の取得(新規)
+			if(map.getCurTileInfo() == MapInfo.UNKNOWN) {
+				while(Button.ENTER.isDown());
+				motion.requestToMbedSensors();
+				if(map.getWallRight() == MapInfo.UNKNOWN) {
+					map.setWallRight(motion.isWallRight() ? MapInfo.WALL : MapInfo.FLAG);
 				}
+				if(map.getWallFront() == MapInfo.UNKNOWN) {
+					map.setWallFront(motion.isWallFront() ? MapInfo.WALL : MapInfo.FLAG);
+				}
+				if(map.getWallLeft() == MapInfo.UNKNOWN) {
+					map.setWallLeft(motion.isWallLeft() ? MapInfo.WALL : MapInfo.FLAG);
+				}
+				//マップの整形
+				map.arrangeMap();	
+				map.dispMapInfo();
 			}
-			map.arrangeMap();
-			map.dispMapInfo();
-			byte direction = 1;
-			byte maxValue = 0;
-			byte curValue = 0;
-			while(true) {
-				for(byte d = 0; d < 4; d++) {
-					switch(d) {
-						case 0:
-							curValue = map.curPos.getWallRight();
-							break;
-						case 1:
-							curValue = map.curPos.getWallFront();
-							break;
-						case 2:
-							curValue = map.curPos.getWallLeft();
-							break;
-						case 3:
-							curValue = map.curPos.getWallBack();
-							break;
-							
+
+			byte direction = 0;
+			//進行方向の決定
+			if(map.getWallRight() == MapInfo.FLAG || // 必然的に右 
+			   (map.getWallLeft() == MapInfo.WALL && map.getWallFront() == MapInfo.WALL)) {
+				direction = 0;
+			} else if(map.getWallFront() == MapInfo.FLAG || //必然的に前
+					   (map.getWallLeft() == MapInfo.WALL && map.getWallRight() == MapInfo.WALL)) {
+				direction = 1;
+			} else if(map.getWallLeft() == MapInfo.FLAG || //必然的に左
+					   (map.getWallFront() == MapInfo.WALL && map.getWallRight() == MapInfo.WALL)) {
+				direction = 2;
+			} else {
+				byte maxVal = 0, curVal = 0;
+				//(FLAG-距離)が大きい方向を選択
+				while(true) {
+					for(byte d = 0; d < 4; d++) {
+						switch(d) {
+							case 0:	curVal = map.getWallRight(); break;
+							case 1:	curVal = map.getWallFront(); break;
+							case 2:	curVal = map.getWallLeft(); break;
+							case 3:	curVal = map.getWallBack(); break;
+							default:
+						}
+						if(curVal > maxVal) {
+							maxVal = curVal;
+							direction = d;
+						}
 					}
-					if(curValue > maxValue) {
-						maxValue = curValue;
-						direction = d;
+					if(maxVal <= MapInfo.PASS) {
+						map.searchFlag();
+					} else {
+						break;
 					}
 				}
-				if(maxValue <= map.PASS) {
-					map.searchFlag();
-				} else {
-					break;
-				}
 			}
-			if(maxValue >= map.FLAG - 1) {
-				sensor.ledYellow(true);
-				map.resetDistanceMap();
-				Delay.msDelay(100);
-				sensor.ledYellow(false);
-			}
+			
 //			LCD.clear();
-//			LCD.drawString("RIHGT: " + map.curPos.getWallRight() , 0, 1);
-//			LCD.drawString("FRONT: " + map.curPos.getWallFront() , 0, 2);
-//			LCD.drawString("LEFT : " + map.curPos.getWallLeft() ,  0, 3);
-//			LCD.drawString("BACK : " + map.curPos.getWallBack() , 0, 4);
-//			Delay.msDelay(1000);
+//			LCD.drawString("("+map.curX+","+map.curY+")", 0, 0);
+//			LCD.drawString("RIGHT: "+map.getWallRight(), 0, 1);
+//			LCD.drawString("FRONT: "+map.getWallFront(), 0, 2);
+//			LCD.drawString("LEFT : "+map.getWallLeft(),  0, 3);
+//			LCD.drawString("BACK : "+map.getWallBack(),  0, 4);
+//			while(!Button.ENTER.isDown());
+//			while(!Button.ENTER.isDown());
+
+			//方向転換
 			switch(direction) {
-				case 0:
-					motion.turnRight(map.curPos.isPassedThrough(), map.curPos.getWallLeft() == map.WALL ? true : false);
-					map.curPos.changeDirec(map.RIGHT);
+				case 0: //右
+					motion.turnRight(map.isPassedThrough());
+					map.changeDirec(true);
 					break;
-				case 2:
-					motion.turnLeft(map.curPos.isPassedThrough(), map.curPos.getWallRight() == map.WALL ? true : false);
-					map.curPos.changeDirec(map.LEFT);
+				case 2: //左
+					motion.turnLeft(map.isPassedThrough());
+					map.changeDirec(false);
 					break;
-				case 3:
-					motion.turnLeft(true, map.curPos.getWallRight() == map.WALL ? true : false);
-					map.curPos.changeDirec(map.LEFT);
-					motion.turnLeft(true, map.curPos.getWallRight() == map.WALL ? true : false);
-					map.curPos.changeDirec(map.LEFT);
+				case 3: //後
+					if(motion.compSideDist() > 0) {
+						motion.turnLeft(map.isPassedThrough());
+						map.changeDirec(false);
+					} else {
+						motion.turnRight(map.isPassedThrough());
+						map.changeDirec(true);
+					}
 					break;
 				default:
 			}
-			
 			map.dispMapInfo();
-			if(sensor.isWallFront()) {
-				map.curPos.setWallFront(map.WALL);
-				Sound.beepSequenceUp();
-				Delay.msDelay(100);
-			} else {
-				byte result = (byte) motion.tileForward(80, map.curPos.getWallFront() == map.PASS ? true : false);
-				if(map.curPos.getCurPos() == map.UNKNOWN) {
-					map.map[map.curPos.room][map.curPos.y][map.curPos.x] = map.PASS;
-				}
-				if(result == motion.BLACK) {
-					map.curPos.setFrontBlack();
-				} else {
-					map.curPos.setFrontPass();
-					map.curPos.changePos();
-				}
-				if(result == motion.SILVER) {
-					map.writeFile();
-					sensor.ledYellow(true);
-					Delay.msDelay(500);
-					sensor.ledYellow(false);
-				}
-				if(result == motion.RAMP) {
-					map.changeNextRoom();
-				} else {
-					if(map.curPos.x == map.doorway_ent_x[map.curPos.room] && map.curPos.y == map.doorway_ent_y[map.curPos.room]) {
-						if(map.curPos.room == 0) {
+			
+			//タイル移動
+			if(map.getWallFront() != MapInfo.WALL) {
+				byte result = (byte)(motion.tileForward(map.getWallFront()==MapInfo.FLAG ? true : false));
+				map.setCurPosInfo(MapInfo.PASS);
+				if(result == LQMover.WALL) {
+					map.setWallFront(MapInfo.WALL);
+				} else if(result == LQMover.BLACK) {
+					map.setFrontBlack();
+				} else { 
+					map.setWallFront(MapInfo.PASS);
+					map.moveNextPosition();
+					if(map.isReachingFlag()) {
+						map.resetDistanceMap();
+					}
+					if(result == LQMover.SILVER) {
+						map.writeFile();
+					} else if(result == LQMover.RAMP) {
+						map.setDoorwayExit();
+						motion.upRamp();
+						map.changeNextRoom();
+					} else if(map.isStartTile()){
+						if(map.curRoom == 0) {
 							break;
 						} else {
-							if(!sensor.isWallRight()) {
-								motion.turnRight(true, map.curPos.getWallLeft() == map.WALL ? true : false);
-							} else if(!sensor.isWallLeft()) {
-								motion.turnLeft(true, map.curPos.getWallRight() == map.WALL ? true : false);
-							}
 							motion.downRamp();
 							map.changePrevRoom();
 						}
