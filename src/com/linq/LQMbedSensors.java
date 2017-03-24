@@ -54,6 +54,7 @@ public class LQMbedSensors {
 		this.tempRightValue		= this.get[5];
 		this.sonicValue			= this.get[6];
 		this.dummyValue			= this.get[7];
+		Delay.msDelay(10);
 	}
 
 	public void readSonicSensor() {

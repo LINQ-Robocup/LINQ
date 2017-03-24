@@ -13,9 +13,6 @@ public class Main {
 
 		/* センサー情報のデバッグ出力 */
 		motion.sensorSetup();
-	
-		LCD.clear();
-		while(!Button.ENTER.isDown()) LCD.drawInt(motion.tileForward(false) , 0, 0);
 		
 		/* マップ情報のリロード */
 		map.reload();
@@ -25,7 +22,6 @@ public class Main {
 		while(true) {
 			//壁情報の取得(新規)
 			if(map.getCurTileInfo() == MapInfo.UNKNOWN) {
-				while(Button.ENTER.isDown());
 				motion.requestToMbedSensors();
 				if(map.getWallRight() == MapInfo.UNKNOWN) {
 					map.setWallRight(motion.isWallRight() ? MapInfo.WALL : MapInfo.FLAG);
@@ -112,7 +108,8 @@ public class Main {
 			
 			//タイル移動
 			if(map.getWallFront() != MapInfo.WALL) {
-				byte result = (byte)(motion.tileForward(map.getWallFront()==MapInfo.FLAG ? true : false));
+				//byte result = (byte)(motion.tileForward(map.getWallFront()== MapInfo.FLAG ? true : false));
+				byte result = (byte)motion.tileForward(false);
 				map.setCurPosInfo(MapInfo.PASS);
 				if(result == LQMover.WALL) {
 					map.setWallFront(MapInfo.WALL);
