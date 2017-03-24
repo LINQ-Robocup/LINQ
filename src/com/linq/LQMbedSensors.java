@@ -102,17 +102,27 @@ public class LQMbedSensors {
 		}
 	}
 	public void rotateServo() {
-		this.servo.forward();
+		this.servo.setPower(100);
 		this.send[0] = 30;
 		RS485.hsWrite(this.send, 0, 1);
-		Delay.msDelay(1000);
+		Delay.msDelay(3000);
 		this.servo.setPower(0);
+	}
+	public void supplyPowerToServo() {
+		while(Button.ESCAPE.isDown());
+		this.servo.setPower(100);
+		this.servo.forward();
+		LCD.drawString("SUPPLING POWER", 2, 2);
+		LCD.drawString("EXIT: ESCAPE", 4, 5);
+		while(!Button.ESCAPE.isDown());
+		LCD.clear();
 	}
 	
 	public void dropRescueKit() {
 		this.servo.setPower(100);
-		Delay.msDelay(4000);
-		rotateServo();
+		this.send[0] = 30;
+		RS485.hsWrite(this.send, 0, 1);
+		Delay.msDelay(5200);
 		this.servo.setPower(0);
 	}
 	

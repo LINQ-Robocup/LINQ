@@ -10,17 +10,15 @@ public class Main {
 		LQMover motion = new LQMover(MotorPort.A, MotorPort.B);
 		MapInfo map = new MapInfo(1, 1);																																																																	
 //		RConsole.openUSB(5000);
-		
+
 		/* センサー情報のデバッグ出力 */
 		motion.sensorSetup();
-		
-		motion.mbed.dropRescueKit();
+	
+		LCD.clear();
+		while(!Button.ENTER.isDown()) LCD.drawInt(motion.tileForward(false) , 0, 0);
 		
 		/* マップ情報のリロード */
 		map.reload();
-		
-		for(byte i = 0; i < 3; i++)
-			motion.tileForward(false);
 		
 		/* 迷路探索 */
 		map.setWallBack(motion.isWallBack() ? MapInfo.WALL : MapInfo.FLAG);
@@ -71,11 +69,12 @@ public class Main {
 							direction = d;
 						}
 					}
-					if(maxVal <= MapInfo.PASS) {
-						map.searchFlag();
-					} else {
-						break;
-					}
+					break;
+//					if(maxVal <= MapInfo.PASS) {
+//						map.searchFlag();
+//					} else {
+//						break;
+//					}
 				}
 			}
 			
@@ -120,23 +119,26 @@ public class Main {
 				} else if(result == LQMover.BLACK) {
 					map.setFrontBlack();
 				} else { 
-					map.setWallFront(MapInfo.PASS);
-					map.moveNextPosition();
-					if(map.isReachingFlag()) {
-						map.resetDistanceMap();
-					}
-					if(result == LQMover.SILVER) {
-						map.writeFile();
-					} else if(result == LQMover.RAMP) {
+					if(result == LQMover.RAMP) {
 						map.setDoorwayExit();
-						motion.upRamp();
 						map.changeNextRoom();
-					} else if(map.isStartTile()){
-						if(map.curRoom == 0) {
-							break;
-						} else {
-							motion.downRamp();
-							map.changePrevRoom();
+					} else {
+						if(map.getWallFront() != MapInfo.PASS)
+							map.setWallFront(MapInfo.PASS);
+						map.moveNextPosition();
+						if(result == LQMover.SILVER) {
+							map.writeFile();
+						}
+						if(map.isReachingFlag()) {
+							map.resetDistanceMap();
+						} else if(map.isStartTile()){
+							map.resetDistanceMap();
+							if(map.curRoom == 0) {
+								break;
+							} else {
+								motion.downRamp();
+								map.changePrevRoom();
+							}
 						}
 					}
 				}

@@ -123,7 +123,7 @@ public class MapInfo {
 	}
 	
 	boolean isReachingFlag() {
-		return (map[this.curRoom][this.curX][this.curY] == FLAG-1) ? true : false;
+		return (getCurTileInfo() == FLAG-1) ? true : false;
 	}
 	
 	/**
@@ -324,10 +324,6 @@ public class MapInfo {
 //				this.curY += -2;
 //				this.doorwayEntY[curRoom] += -2;
 //				this.doorwayExtY[curRoom] += -2;
-//				LCD.clear(0);
-//				LCD.drawString("UP SHIFT", 0, 0);
-//				while(!Button.ENTER.isDown());
-//				while(Button.ENTER.isDown());
 //				break;
 //			}
 //		}
@@ -661,8 +657,8 @@ public class MapInfo {
 		String posInfo = "X:" + this.curX + " Y:" + this.curY + " D :" + this.curDirec;
 		String refInfo = "F:" + getWallFront() + 
 						" B:" + getWallBack() + 
-						" L:" + getWallRight() +
-						" R:" + getWallLeft();
+						" R:" + getWallRight() +
+						" L:" + getWallLeft();
 		LCD.drawString(posInfo, 0, 0);
 		LCD.drawString(refInfo, 0, 1);
 		final byte x = (byte) (this.curX - (this.curX / 2) - 1);
