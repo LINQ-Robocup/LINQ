@@ -656,7 +656,7 @@ public class MapInfo {
 	 * é©å»à íuèÓïÒ(ç¿ïW,ñÓàÛ)ÇLCDÇ…ï\é¶
 	 */
 	public void dispPosition() {
-		LCD.clear(1);
+//		LCD.clear(1);
 		Graphics g = new Graphics();
 		String posInfo = "X:" + this.curX + " Y:" + this.curY + " D :" + this.curDirec;
 		String refInfo = "F:" + getWallFront() + 
@@ -664,7 +664,7 @@ public class MapInfo {
 						" R:" + getWallRight() +
 						" L:" + getWallLeft();
 		LCD.drawString(posInfo, 0, 0);
-		LCD.drawString(refInfo, 0, 1);
+//		LCD.drawString(refInfo, 0, 1);
 		final byte x = (byte) (this.curX - (this.curX / 2) - 1);
 		final byte y = (byte) (this.curY - (this.curY / 2) - 1);
 		switch(this.curDirec) {

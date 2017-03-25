@@ -81,8 +81,15 @@ public class LQMover {
 	 * @return ï«Ç™Ç†ÇÈ: true ï«Ç™Ç»Ç¢: false
 	 */
 	public boolean isWallFront() {
-		return (mbed.distFrontLeftValue < 127 &&
-				mbed.distFrontRightValue < 127) ? true : false;
+		if (mbed.distFrontLeftValue < 127 && mbed.distFrontRightValue < 127) {
+			return true;
+		} else {
+//			mbed.readSonicSensor();
+//			if(mbed.sonicValue < 25) {
+//				return true;
+//			}
+			return false;
+		}
 	}
 	
 	/**
@@ -182,6 +189,13 @@ public class LQMover {
 			return;
 		}
 		//ï«Ç…âüÇµÇ¬ÇØ(éûä‘) 
+//		leftMotor.resetTachoCount();
+//		rightMotor.resetTachoCount();
+//		while((leftMotor.getTachoCount() + rightMotor.getTachoCount()) / 2 >- 120) {
+//			leftMotor.setPower(-speed);
+//			rightMotor.setPower(-speed);
+//		}
+//		stop();
 		leftMotor.setPower(-speed);
 		rightMotor.setPower(-speed);
 		Delay.msDelay(600);
@@ -355,7 +369,7 @@ public class LQMover {
 			} else {
 				mbed.readAllSensors();
 				//ñ¢í âﬂÇÃèÍçá
-				if(pass == false && rotate > 180) {
+				if(pass == false && rotate > 60) {
 					//çïÉ^ÉCÉã
 					if(sensor.getLightValue() < LIGHT_BLACK_THRESHOLD) {
 						black_tile_cnt ++;
@@ -469,13 +483,14 @@ public class LQMover {
 		if(!pass) mbed.toggleLedBlue(true);
 		if(isWallLeft()) back_wall_flag = true;
 		if(isWallFront()) setParallel(); 
-		while(pass == false && sensor.getGyroValue() < 8000) {
+		while(pass == false && sensor.getGyroValue() < 7000) {
 			mbed.readAllSensors();
 			if(mbed.tempLeftValue > TEMP_THRESHOLD) {
 				temp_cnt ++;
 				if(temp_cnt > 0) {
 					/* îÌç–é“î≠å© */
 					changeDirectionUsingGyro(sensor.getGyroValue()/100 + 90);
+					mbed.dropRescueKit();
 					pass = true;
 				} 
 			} else {
@@ -485,7 +500,7 @@ public class LQMover {
 			rightMotor.setPower(-speed);
 			Delay.msDelay(10);
 		}
-		changeDirectionUsingGyro(90);
+		changeDirectionUsingGyro(80);
 		mbed.toggleLedBlue(false);
 		this.setGyroOffset(9000);
 		if(back_wall_flag) backWall();
@@ -503,13 +518,14 @@ public class LQMover {
 		if(!pass) mbed.toggleLedBlue(true); 
 		if(isWallRight()) back_wall_flag = true;
 		if(isWallFront()) setParallel();
-		while(pass == false && sensor.getGyroValue() > -8000) {
+		while(pass == false && sensor.getGyroValue() > -7000) {
 			mbed.readAllSensors();
 			if(mbed.tempRightValue > TEMP_THRESHOLD) {
 				temp_cnt ++;
 				if(temp_cnt > 0) {
 					/* îÌç–é“î≠å© */
 					changeDirectionUsingGyro(sensor.getGyroValue()/100 - 90);
+					mbed.dropRescueKit();
 					pass = true;
 				} 
 			} else {
@@ -519,7 +535,7 @@ public class LQMover {
 			rightMotor.setPower(speed);
 			Delay.msDelay(10);
 		}
-		changeDirectionUsingGyro(-90);
+		changeDirectionUsingGyro(-80);
 		mbed.toggleLedBlue(false);
 		this.setGyroOffset(-9000);
 		if(back_wall_flag) backWall();

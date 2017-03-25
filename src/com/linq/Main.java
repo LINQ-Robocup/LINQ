@@ -114,7 +114,7 @@ public class Main {
 							map.resetDistanceMap();
 						} else if(map.isStartTile()){
 							map.resetDistanceMap();
-							if(map.curRoom == 0) {
+							if(map.curRoom == 0 && map.getCurTileInfo() > 0) {
 								break;
 							} else {
 								motion.downRamp();

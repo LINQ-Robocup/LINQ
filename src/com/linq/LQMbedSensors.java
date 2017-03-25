@@ -64,7 +64,7 @@ public class LQMbedSensors {
 		this._readAllSensors();
 		while(this.dummyValue != this.errorValue || this.sonicValue == -1) {
 			Sound.beep();
-			showSensorValues();
+//			showSensorValues();
 			this._readAllSensors();
 		}
 	}
