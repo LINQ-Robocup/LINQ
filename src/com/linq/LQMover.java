@@ -14,7 +14,7 @@ public class LQMover {
 	static LQMotor2 leftMotor;
 	static LQMotor2 rightMotor;
 	LQMbedSensors mbed;
-	static LQNXTSensors sensor;
+	LQNXTSensors sensor;
 
 	// offset 
 	int offset = 0;
@@ -113,7 +113,7 @@ public class LQMover {
 			if(isWallFront()) setParallel();
 		}
 		changeDirectionUsingGyro(0);
-		if(back) backWall();
+//		if(back) backWall();
 		return back;
 	}
 	
@@ -135,11 +135,11 @@ public class LQMover {
 	}
 	
 	private boolean isTiltUp() {
-		return (sensor.getAccelYValue() > 200 && sensor.getAccelZValue() > -1000) ? true : false;
+		return (sensor.getAccelYValue() > 200 /*&& sensor.getAccelZValue() > -1000*/) ? true : false;
 	}
 	
 	private boolean isTiltDown() {
-		return (sensor.getAccelYValue() < -1000 && sensor.getAccelZValue() < -98) ? true : false;
+		return (sensor.getAccelYValue() < -200 /*&& sensor.getAccelZValue() < -98*/) ? true : false;
 	}
 	
 	/**
@@ -148,16 +148,17 @@ public class LQMover {
 	public void setParallel() {
 		//壁にタッチ
 		mbed.toggleLedBlue(false);
+		stop();
 		while(true) {
-			if(!sensor.isLeftTouchPressed() && !sensor.isLeftTouchPressed()) {
-				leftMotor.setPower(50);
-				rightMotor.setPower(50);
-			} else if(sensor.isLeftTouchPressed() && !sensor.isRightTouchPressed()) {
-				rightMotor.setPower(80);
-				leftMotor.setPower(0);
-			} else if(!sensor.isLeftTouchPressed() && sensor.isRightTouchPressed()) {
-				leftMotor.setPower(80);
-				rightMotor.setPower(0);
+			if(!sensor.isLeftTouchPressed() || !sensor.isLeftTouchPressed()) {
+				leftMotor.setPower(70);
+				rightMotor.setPower(70);
+//			} else if(sensor.isLeftTouchPressed() && !sensor.isRightTouchPressed()) {
+//				rightMotor.setPower(80);
+//				leftMotor.setPower(80);
+//			} else if(!sensor.isLeftTouchPressed() && sensor.isRightTouchPressed()) {
+//				leftMotor.setPower(80);
+//				rightMotor.setPower(80);
 			} else {
 				break;
 			}
@@ -177,10 +178,13 @@ public class LQMover {
 	
 	public void backWall() {
 		byte speed = 80;
+		if(sensor.getLightValue() > LIGHT_SILVER_THRESHOLD) {
+			return;
+		}
 		//壁に押しつけ(時間) 
 		leftMotor.setPower(-speed);
 		rightMotor.setPower(-speed);
-		Delay.msDelay(500);
+		Delay.msDelay(600);
 		stop();
 		//傾き防止
 //		leftMotor.setPower(50);
@@ -190,7 +194,7 @@ public class LQMover {
 		//中心に移動(回転)
 		leftMotor.resetTachoCount();
 		rightMotor.resetTachoCount();
-		while((leftMotor.getTachoCount() + rightMotor.getTachoCount()) / 2 < 180) {
+		while((leftMotor.getTachoCount() + rightMotor.getTachoCount()) / 2 < 120) {
 			leftMotor.setPower(speed);
 			rightMotor.setPower(speed);
 		}
@@ -335,13 +339,23 @@ public class LQMover {
 				front_wall_flag = true;
 				break;
 			} else if(sensor.isLeftTouchPressed()) {
+				mbed.readAllSensors();
+				if(isWallFront()) {
+					stop();
+					return WALL;
+				}
 				avoidWall(false);
 			} else if(sensor.isRightTouchPressed()) {
+				mbed.readAllSensors();
+				if(isWallFront()) {
+					stop();
+					return WALL;
+				}
 				avoidWall(true);
 			} else {
 				mbed.readAllSensors();
 				//未通過の場合
-				if(pass == false) {
+				if(pass == false && rotate > 180) {
 					//黒タイル
 					if(sensor.getLightValue() < LIGHT_BLACK_THRESHOLD) {
 						black_tile_cnt ++;
@@ -403,13 +417,18 @@ public class LQMover {
 		}
 		stop();
 		mbed.toggleLedBlue(false);
+		if(front_wall_flag == true) {
+			return WALL;
+		}
 		if(black_tile_cnt <= 3) {
-//			if(pass != true) {
-//				if(isTiltUp()) {
-//					upRamp();
-//					return RAMP;
-//				}
-//			}
+			if(pass != true) {
+				sensor.resetGyroValue();
+				if(isTiltUp()) {
+					Sound.beepSequence();
+					upRamp();
+					return RAMP;
+				}
+			}
 			if(sensor.getLightValue() > LIGHT_SILVER_THRESHOLD) {
 				Sound.buzz();
 				return SILVER;
@@ -446,6 +465,7 @@ public class LQMover {
 		final int speed = 80;
 		boolean back_wall_flag = false;
 		int temp_cnt = 0;
+		mbed.readAllSensors();
 		if(!pass) mbed.toggleLedBlue(true);
 		if(isWallLeft()) back_wall_flag = true;
 		if(isWallFront()) setParallel(); 
@@ -479,6 +499,7 @@ public class LQMover {
 		final int speed = 80;
 		boolean back_wall_flag = false;
 		int temp_cnt = 0;
+		mbed.readAllSensors();
 		if(!pass) mbed.toggleLedBlue(true); 
 		if(isWallRight()) back_wall_flag = true;
 		if(isWallFront()) setParallel();
@@ -531,11 +552,11 @@ public class LQMover {
 	 * 全てのセンサーの値表示・LED、サーボお試し
 	 */
 	public void sensorSetup() {
-		while(Button.ENTER.isDown());
 //		mbed.debugLeds();
 //		mbed.debugServo();
 		mbed.debugAllSensors();
+//		mbed.readAllSensors();
 		sensor.debugSensors();
-		debugWall();
+//		debugWall();
 	}
 }

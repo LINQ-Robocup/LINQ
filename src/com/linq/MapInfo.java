@@ -1,6 +1,7 @@
 package com.linq;
 
 import java.io.*;
+
 import lejos.nxt.*;
 
 import javax.microedition.lcdui.Graphics;
@@ -13,9 +14,9 @@ public class MapInfo {
 	public static final byte HEIGHT = 5 * 2 + 1;
 	public static final byte WIDTH  = 9 * 2 + 1;
 	// マップ値
-	public static final byte WALL 	= 1;
+	public static final byte WALL 	= 99;
 	public static final byte PASS 	= 2;
-	public static final byte FLAG 	= 99;
+	public static final byte FLAG 	= 1;
 	public static final byte UNKNOWN = 0;
 	//方向
 	public static final byte NORTH = 0;
@@ -107,7 +108,7 @@ public class MapInfo {
 	 * @return 通過済み: true 未通過: false
 	 */
 	boolean isPassedThrough() {
-		return (map[this.curRoom][this.curY][this.curX] == PASS) ? true : false; 
+		return (this.getCurTileInfo() > 0) ? true : false; 
 	}
 	
 	/**
@@ -115,7 +116,7 @@ public class MapInfo {
 	 * @return 現在座標の値
 	 */
 	byte getCurTileInfo() {
-		return map[this.curRoom][this.curY][this.curX];
+		return this.map[this.curRoom][this.curY][this.curX];
 	}
 	
 	boolean isStartTile() {
@@ -311,22 +312,22 @@ public class MapInfo {
 			}
 		}
 		/* 縦シフト (Y座標の0と末端がUNKOWNの場合)*/
-//		for(byte i = 0; i < WIDTH; i++) {
-//			if(map[curRoom][0][i] == FLAG) {
-//				//上シフト
-//				for(byte j = 0; j < WIDTH; j++) {
-//					for(byte k = HEIGHT-1; k > 1; k--) {
-//						map[curRoom][k][j] = map[curRoom][k-2][j];
-//					}
-//					map[curRoom][0][j] = UNKNOWN;
-//					map[curRoom][1][j] = UNKNOWN;
-//				}
-//				this.curY += -2;
-//				this.doorwayEntY[curRoom] += -2;
-//				this.doorwayExtY[curRoom] += -2;
-//				break;
-//			}
-//		}
+		for(byte i = 0; i < WIDTH; i++) {
+			if(map[curRoom][0][i] == FLAG) {
+				//上シフト
+				for(byte j = 0; j < WIDTH; j++) {
+					for(byte k = HEIGHT-1; k > 1; k--) {
+						map[curRoom][k][j] = map[curRoom][k-2][j];
+					}
+					map[curRoom][0][j] = UNKNOWN;
+					map[curRoom][1][j] = UNKNOWN;
+				}
+				this.curY += 2;
+				this.doorwayEntY[curRoom] += 2;
+				this.doorwayExtY[curRoom] += 2;
+				break;
+			}
+		}
 	}
 	
 	public void setDoorwayExit() {
@@ -334,15 +335,14 @@ public class MapInfo {
 		doorwayExtY[curRoom] = this.curY;
 		doorwayExtDirec[curRoom] = this.curDirec;
 	}
-	
-	
+
 	/**
 	 * 位置情報のリセット(部屋移動時)
 	 */
 	public void changeNextRoom() {
 		setDoorwayExit();
 		setWallFront(WALL);
-		this.curRoom += 1;
+		this.curRoom = 1;
 		this.curX = doorwayEntX[this.curRoom] = INITIAL_POS_X;
 		this.curY = doorwayEntY[this.curRoom] = INITIAL_POS_Y;
 		this.curDirec = INITIAL_DIREC;
@@ -352,7 +352,7 @@ public class MapInfo {
 	 * 位置情報のリセット(部屋帰還時)
 	 */
 	public void changePrevRoom() {
-		this.curRoom -= 1;
+		this.curRoom = 0;
 		this.curX = doorwayExtX[this.curRoom];
 		this.curY = doorwayExtY[this.curRoom];
 		this.curDirec = (byte) ((doorwayExtDirec[this.curRoom] + 3) % 4);
@@ -453,24 +453,28 @@ public class MapInfo {
 	/**
 	 * マップのリロード
 	 */
-	public void reload() {
+	public boolean reload() {
+		boolean flag = false;
 		LCD.clear();
 		while(true) {
 			LCD.drawString("X:" + this.curX + " Y:" + this.curY + " D :" + this.curDirec, 0, 0);
 			LCD.drawString("RELOAD -> RIGHT", 0, 1);
 			LCD.drawString("RESET  -> LEFT",  0, 2);
 			LCD.drawString("START  -> ENTER", 0, 3);
-			if(Button.RIGHT.isDown()) 
+			if(Button.RIGHT.isDown()) {
 				this.readFile();
-			else if(Button.LEFT.isDown())  
+				flag = true;
+			} else if(Button.LEFT.isDown()) {  
 				this.resetFile();
-			else if(Button.ENTER.isDown()) 
+			} else if(Button.ENTER.isDown()) { 
 				break;
+			}
 		}
 		LCD.clear();
 		while(Button.ENTER.isDown());
 		this.dispMapInfo();
 		while(!Button.ENTER.isDown());
+		return flag;
 	}
 	
 	/**
