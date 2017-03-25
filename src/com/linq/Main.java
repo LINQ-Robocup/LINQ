@@ -103,6 +103,7 @@ public class Main {
 				} else { 
 					if(result == LQMover.RAMP) {
 						map.setDoorwayExit();
+						Sound.beepSequenceUp();
 						map.changeNextRoom();
 					} else {
 						map.setWallFront((byte)(map.getWallFront()+1));
@@ -117,8 +118,9 @@ public class Main {
 							if(map.curRoom == 0 && map.getCurTileInfo() > 0) {
 								break;
 							} else {
-								motion.downRamp();
 								map.changePrevRoom();
+								motion.turnRight(true);
+								motion.upRamp();
 							}
 						}
 					}
