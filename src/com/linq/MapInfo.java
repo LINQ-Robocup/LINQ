@@ -659,10 +659,10 @@ public class MapInfo {
 //		LCD.clear(1);
 		Graphics g = new Graphics();
 		String posInfo = "X:" + this.curX + " Y:" + this.curY + " D :" + this.curDirec;
-		String refInfo = "F:" + getWallFront() + 
-						" B:" + getWallBack() + 
-						" R:" + getWallRight() +
-						" L:" + getWallLeft();
+//		String refInfo = "F:" + getWallFront() + 
+//						" B:" + getWallBack() + 
+//						" R:" + getWallRight() +
+//						" L:" + getWallLeft();
 		LCD.drawString(posInfo, 0, 0);
 //		LCD.drawString(refInfo, 0, 1);
 		final byte x = (byte) (this.curX - (this.curX / 2) - 1);

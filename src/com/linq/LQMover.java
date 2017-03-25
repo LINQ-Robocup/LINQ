@@ -357,15 +357,17 @@ public class LQMover {
 				if(isWallFront()) {
 					stop();
 					return WALL;
+				} else {
+					avoidWall(false);
 				}
-				avoidWall(false);
 			} else if(sensor.isRightTouchPressed()) {
 				mbed.readAllSensors();
 				if(isWallFront()) {
 					stop();
 					return WALL;
+				} else {
+					avoidWall(true);
 				}
-				avoidWall(true);
 			} else {
 				mbed.readAllSensors();
 				//ñ¢í âﬂÇÃèÍçá

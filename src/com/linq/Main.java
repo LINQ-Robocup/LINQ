@@ -42,20 +42,20 @@ public class Main {
 			byte minVal = map.getWallRight();
 			byte curVal = 0;
 			//’Ê‰ß‰ñ”‚ª­‚È‚¢•ûŒü‚ð‘I‘ð
-			curVal = map.getWallRight();
+			curVal = map.getWallLeft();
 			if(curVal > 0 && curVal < minVal) {
 				minVal = curVal;
-				direction = (byte)0;
+				direction = (byte)2;
 			}
 			curVal = map.getWallFront();
 			if(curVal > 0 && curVal < minVal) {
 				minVal = curVal;
 				direction = (byte)1;
 			}
-			curVal = map.getWallLeft();
+			curVal = map.getWallRight();
 			if(curVal > 0 && curVal < minVal) {
 				minVal = curVal;
-				direction = (byte)2;
+				direction = (byte)0;
 			}
 			curVal = map.getWallBack();
 			if(curVal > 0 && curVal < minVal) {
