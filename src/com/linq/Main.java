@@ -94,7 +94,7 @@ public class Main {
 			
 			//ƒ^ƒCƒ‹ˆÚ“®
 			if(map.getWallFront() != MapInfo.WALL) {
-				byte result = (byte)(motion.tileForward(map.getWallFront() == 1 ? false : true));
+				byte result = (byte)(motion.tileForward(map.getWallFront() == 1 ? false : true, map.curRoom == 0 ? true : false));
 				map.setCurPosInfo(MapInfo.PASS);
 				if(result == LQMover.WALL) {
 					map.setWallFront(MapInfo.WALL);
@@ -119,7 +119,9 @@ public class Main {
 								break;
 							} else {
 								map.changePrevRoom();
+								motion.setParallel();
 								motion.turnRight(true);
+								motion.tileForward(true, false);
 								motion.upRamp();
 							}
 						}

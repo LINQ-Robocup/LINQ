@@ -346,6 +346,11 @@ public class MapInfo {
 		this.curX = doorwayEntX[this.curRoom] = INITIAL_POS_X;
 		this.curY = doorwayEntY[this.curRoom] = INITIAL_POS_Y;
 		this.curDirec = INITIAL_DIREC;
+		setCurPosInfo(PASS);
+		setWallLeft(WALL);
+		setWallRight(WALL);
+		setWallBack(WALL);
+		setWallFront(FLAG);
 	}
 	
 	/**
