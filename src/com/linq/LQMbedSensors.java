@@ -11,7 +11,7 @@ import lejos.util.Delay;
 public class LQMbedSensors {
 	
 	private byte send[] = new byte[2];
-	private byte get[] = new byte[8];
+	private byte get[] = new byte[10];
 	
 	public byte distFrontLeftValue	= 0;
 	public byte distFrontRightValue	= 0;
@@ -22,6 +22,8 @@ public class LQMbedSensors {
 	public byte tempRightValue		= 0;
 	
 	public byte sonicValue			= 0;
+	public byte cameraLeftValue		= 0;
+	public byte cameraRightValue	= 0;
 	public byte dummyValue 			= 0;
 	private final byte errorValue 	= 111;
 
@@ -36,7 +38,7 @@ public class LQMbedSensors {
 	public void readAllSensors () {
 		while(true) {
 			this._readAllSensors();
-			if(this.dummyValue == this.errorValue) break;
+//			if(this.dummyValue == this.errorValue) break;
 			Sound.beep();
 			Delay.msDelay(10);
 		}
@@ -45,7 +47,7 @@ public class LQMbedSensors {
 	private void _readAllSensors() {
 		this.send[0] = 1;
 		RS485.hsWrite(this.send, 0, 1);
-		RS485.hsRead(this.get, 0, 8);
+		RS485.hsRead(this.get, 0, 10);
 		this.distFrontLeftValue	= this.get[0];
 		this.distFrontRightValue= this.get[1];
 		this.distLeftValue 		= this.get[2];
@@ -53,7 +55,9 @@ public class LQMbedSensors {
 		this.tempLeftValue		= this.get[4];
 		this.tempRightValue		= this.get[5];
 		this.sonicValue			= this.get[6];
-		this.dummyValue			= this.get[7];
+		this.cameraLeftValue	= this.get[7];
+		this.cameraRightValue	= this.get[8];
+		this.dummyValue			= this.get[9];
 		Delay.msDelay(10);
 	}
 
@@ -65,6 +69,17 @@ public class LQMbedSensors {
 		while(this.dummyValue != this.errorValue || this.sonicValue == -1) {
 			Sound.beep();
 //			showSensorValues();
+			this._readAllSensors();
+		}
+	}
+	
+	public void readRaspi(int direction) {
+		this.send[0] = (byte) (direction == 1 ? 31 : 32);
+		RS485.hsWrite(this.send, 0, 1);
+		this._readAllSensors();
+		Sound.beep();
+		while(this.dummyValue != this.errorValue) {
+			Sound.beep();
 			this._readAllSensors();
 		}
 	}
@@ -109,6 +124,7 @@ public class LQMbedSensors {
 		Delay.msDelay(3000);
 		this.servo.setPower(0);
 	}
+
 	public void supplyPowerToServo() {
 		while(Button.ESCAPE.isDown());
 		this.servo.setPower(100);

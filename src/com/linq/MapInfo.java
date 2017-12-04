@@ -116,7 +116,7 @@ public class MapInfo {
 	 * @return åªç›ç¿ïWÇÃíl
 	 */
 	byte getCurTileInfo() {
-		return this.map[this.curRoom][this.curY][this.curX];
+		return this.map[this.curRoom][this.curX][this.curX];
 	}
 	
 	boolean isStartTile() {
