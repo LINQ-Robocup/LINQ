@@ -26,6 +26,13 @@ public class LQMbedSensors {
 	public byte cameraRightValue	= 0;
 	public byte dummyValue 			= 0;
 	private final byte errorValue 	= 111;
+	
+	public final boolean cameraLeft = false;
+	public final boolean cameraRight = true;
+	
+	public final byte ENABLE_CAMERA_LEFT = 31;
+	public final byte ENABLE_CAMERA_RIGHT = 32;
+	
 
 	private NXTMotor servo;
 
@@ -73,9 +80,10 @@ public class LQMbedSensors {
 //		}
 	}
 	
-	public void readRaspi(int direction) {
-		this.send[0] = (byte) (direction == 1 ? 31 : 32);
+	public void readRaspi(boolean direction) {
+		this.send[0] = (byte) (direction == false ? ENABLE_CAMERA_LEFT : ENABLE_CAMERA_RIGHT);
 		RS485.hsWrite(this.send, 0, 1);
+		Delay.msDelay(1000);
 		this._readAllSensors();
 		Sound.beep();
 //		while(this.dummyValue != this.errorValue) {

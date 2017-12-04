@@ -21,7 +21,7 @@ public class Main {
 		
 		/* ‚É‚­‚Ü‚ñ‚Ì‚ ‚»‚Ñ‚Î */
 		while(!Button.ESCAPE.isDown()){
-			motion.mbed.readRaspi(1);
+			motion.mbed.readRaspi(motion.mbed.cameraLeft);
 			LCD.clear();
 			LCD.drawInt(motion.mbed.cameraLeftValue, 1, 1);
 			LCD.drawInt(motion.mbed.cameraRightValue, 1, 2);
@@ -29,7 +29,7 @@ public class Main {
 			LCD.drawInt(motion.mbed.dummyValue, 1, 7);
 			Delay.msDelay(1000);
 			
-			motion.mbed.readRaspi(2);
+			motion.mbed.readRaspi(motion.mbed.cameraRight);
 			LCD.clear();
 			LCD.drawInt(motion.mbed.cameraLeftValue, 1, 1);
 			LCD.drawInt(motion.mbed.cameraRightValue, 1, 2);
