@@ -21,9 +21,20 @@ public class Main {
 		
 		/* ‚É‚­‚Ü‚ñ‚Ì‚ ‚»‚Ñ‚Î */
 		while(!Button.ESCAPE.isDown()){
-			if(Button.ENTER.isDown()) motion.mbed.readRaspi(1);
+			motion.mbed.readRaspi(1);
 			LCD.clear();
 			LCD.drawInt(motion.mbed.cameraLeftValue, 1, 1);
+			LCD.drawInt(motion.mbed.cameraRightValue, 1, 2);
+			LCD.drawInt(motion.mbed.distFrontLeftValue, 1, 5);
+			LCD.drawInt(motion.mbed.dummyValue, 1, 7);
+			Delay.msDelay(1000);
+			
+			motion.mbed.readRaspi(2);
+			LCD.clear();
+			LCD.drawInt(motion.mbed.cameraLeftValue, 1, 1);
+			LCD.drawInt(motion.mbed.cameraRightValue, 1, 2);
+			LCD.drawInt(motion.mbed.distFrontLeftValue, 1, 5);
+			LCD.drawInt(motion.mbed.dummyValue, 1, 7);
 			Delay.msDelay(1000);
 		}
 //		while(!Button.ESCAPE.isDown()){

@@ -38,7 +38,7 @@ public class LQMbedSensors {
 	public void readAllSensors () {
 		while(true) {
 			this._readAllSensors();
-//			if(this.dummyValue == this.errorValue) break;
+			if(this.dummyValue == this.errorValue) break;
 			Sound.beep();
 			Delay.msDelay(10);
 		}
@@ -66,11 +66,11 @@ public class LQMbedSensors {
 		RS485.hsWrite(this.send, 0, 1);
 		Delay.msDelay(1000);
 		this._readAllSensors();
-		while(this.dummyValue != this.errorValue || this.sonicValue == -1) {
-			Sound.beep();
-//			showSensorValues();
-			this._readAllSensors();
-		}
+//		while(this.dummyValue != this.errorValue || this.sonicValue == -1) {
+//			Sound.beep();
+////			showSensorValues();
+//			this._readAllSensors();
+//		}
 	}
 	
 	public void readRaspi(int direction) {
@@ -78,10 +78,10 @@ public class LQMbedSensors {
 		RS485.hsWrite(this.send, 0, 1);
 		this._readAllSensors();
 		Sound.beep();
-		while(this.dummyValue != this.errorValue) {
-			Sound.beep();
-			this._readAllSensors();
-		}
+//		while(this.dummyValue != this.errorValue) {
+//			Sound.beep();
+//			this._readAllSensors();
+//		}
 	}
 
 	public void toggleLedBlue(boolean sw) {
