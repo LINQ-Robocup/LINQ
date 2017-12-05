@@ -32,6 +32,7 @@ public class LQMbedSensors {
 	
 	public final byte ENABLE_CAMERA_LEFT = 31;
 	public final byte ENABLE_CAMERA_RIGHT = 32;
+	public final byte RESET_SOME_VALUES = 35;
 	
 
 	private NXTMotor servo;
@@ -91,7 +92,29 @@ public class LQMbedSensors {
 //			this._readAllSensors();
 //		}
 	}
-
+	
+	public void resetSomeValues() {
+		this.send[0] = RESET_SOME_VALUES;
+		RS485.hsWrite(this.send, 0, 1);
+	}
+	
+	public void debugCamera() {
+		while (true) {
+			if(Button.LEFT.isDown()) readRaspi(cameraLeft);
+			if(Button.RIGHT.isDown()) readRaspi(cameraRight);
+			if(Button.ENTER.isDown()) readSonicSensor();
+			if(Button.ESCAPE.isDown()) {resetSomeValues(); this.readAllSensors();}
+			LCD.clear();
+			LCD.drawString("CAMERA_L", 0, 0);
+			LCD.drawInt(this.cameraLeftValue, 10, 0);
+			LCD.drawString("CAMERA_R", 0, 1);
+			LCD.drawInt(this.cameraRightValue, 10, 1);
+			LCD.drawString("SONIC", 0, 3);
+			LCD.drawInt(this.sonicValue, 10, 3);
+			Delay.msDelay(10);
+		}
+	}
+	
 	public void toggleLedBlue(boolean sw) {
 		if(sw == true) {
 			this.send[0] = 20;
