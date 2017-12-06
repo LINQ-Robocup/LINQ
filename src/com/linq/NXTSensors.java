@@ -9,7 +9,7 @@ import lejos.nxt.addon.CruizcoreGyro;
 import lejos.nxt.addon.RCXLightSensor;
 import lejos.util.Delay;
 
-public class LQNXTSensors {
+public class NXTSensors {
 
 	public final byte TOUCH_R		= 0;
 	public final byte TOUCH_L		= 1;
@@ -33,7 +33,7 @@ public class LQNXTSensors {
 	public NXTMotor servo;
 /*===========================================================================*/
 	
-	public LQNXTSensors() {
+	public NXTSensors() {
 		
 		this.light_left = new RCXLightSensor(SensorPort.S2);
 		this.light_left.setFloodlight(true);

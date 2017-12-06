@@ -1,134 +1,80 @@
 package com.linq;
 
-import lejos.nxt.*;
-//import lejos.nxt.comm.RConsole;
+import lejos.nxt.Sound;
+
 
 public class Main {
-
+	enum Direc{RIGHT, LEFT, FRONT, BACK;}
 	public static void main(String[] args) {
 		/* インスタンス生成・初期化 */
-		LQMover motion = new LQMover(MotorPort.A, MotorPort.B);
-		MapInfo map = new MapInfo(1, 1);																																																																	
-//		RConsole.openUSB(5000);
-
-		/* センサー情報のデバッグ出力 */
-		motion.sensorSetup();
-		
-		/* マップ情報のリロード */
-		if(map.reload()) map.setCurPosInfo(MapInfo.UNKNOWN);
+		MotionToMap map = new MotionToMap();
+		map.dispMapInfo();
+		map.waitForButtonPress(0);
 		
 		/* 迷路探索 */
-		map.setWallBack(motion.isWallBack() ? MapInfo.WALL : MapInfo.FLAG);
+		map.setPathBack(Map.WALL);
 		while(true) {
-			//壁情報の取得(新規)
-			if(map.getCurTileInfo() == MapInfo.UNKNOWN) {
-				motion.requestToMbedSensors();
-				if(map.getWallRight() == MapInfo.UNKNOWN) {
-					map.setWallRight(motion.isWallRight() ? MapInfo.WALL : MapInfo.FLAG);
-				}
-				if(map.getWallFront() == MapInfo.UNKNOWN) {
-					map.setWallFront(motion.isWallFront() ? MapInfo.WALL : MapInfo.FLAG);
-				}
-				if(map.getWallLeft() == MapInfo.UNKNOWN) {
-					map.setWallLeft(motion.isWallLeft() ? MapInfo.WALL : MapInfo.FLAG);
-				}
-				//マップの整形
+			if (!map.isTilePassed()) {
+				// 壁情報の取得(新規)
+				map.updateRealWallInfo();
+				if (map.getPathRight() == Map.UNKNOWN)
+					map.setPathRight(map.real.isWallRight() ? Map.WALL : Map.FLAG);
+				if (map.getPathFront() == Map.UNKNOWN)
+					map.setPathFront(map.real.isWallFront() ? Map.WALL : Map.FLAG);
+				if (map.getPathLeft() == Map.UNKNOWN) 
+					map.setPathLeft(map.real.isWallLeft() ? Map.WALL : Map.FLAG);
+				// マップの整形
 				map.arrangeMap();
 				map.dispMapInfo();
 			}
-
-			byte direction = 0;
-			//進行方向の決定
-			byte minVal = map.getWallRight();
-			byte curVal = 0;
-			//通過回数が少ない方向を選択
-			curVal = map.getWallLeft();
-			if(curVal > 0 && curVal < minVal) {
-				minVal = curVal;
-				direction = (byte)2;
-			}
-			curVal = map.getWallFront();
-			if(curVal > 0 && curVal < minVal) {
-				minVal = curVal;
-				direction = (byte)1;
-			}
-			curVal = map.getWallRight();
-			if(curVal > 0 && curVal < minVal) {
-				minVal = curVal;
-				direction = (byte)0;
-			}
-			curVal = map.getWallBack();
-			if(curVal > 0 && curVal < minVal) {
-				minVal = curVal;
-				direction = (byte)3;
+			
+			// 進行方向の決定
+			Direc direc;
+			while (true) {
+				direc = Direc.BACK;
+				byte path = map.getPathBack();
+				if(map.getPathLeft() >= path) {
+					path = map.getPathLeft();
+					direc = Direc.LEFT;
+				}
+				if(map.getPathFront() >= path) {
+					path = map.getPathFront();
+					direc = Direc.FRONT;
+				}
+				if(map.getPathRight() >= path) {
+					path = map.getPathRight();
+					direc = Direc.RIGHT;
+				}
+				// 全て通過済みの場合(最短のFLAGまでの距離を配列に代入)
+				if (path <= Map.PASS) {
+					Sound.buzz();
+					map.searchFlag();
+					map.dispMapInfo();
+				} else {
+					if (path == Map.FLAG)
+						map.resetDistanceMap();
+					break;
+				}
 			}
 			
 			//方向転換
-			switch(direction) {
-				case 0: //右
-					motion.turnRight(map.isPassedThrough());
-					map.changeDirec(true);
-					break;
-				case 2: //左
-					motion.turnLeft(map.isPassedThrough());
-					map.changeDirec(false);
-					break;
-				case 3: //後
-					if(motion.compSideDist() > 0) {
-						motion.turnLeft(map.isPassedThrough());
-						motion.sensor.resetGyroValue();
-						motion.turnLeft(map.isPassedThrough());
-						map.changeDirec(false);
-						map.changeDirec(false);
-					} else {
-						motion.turnRight(map.isPassedThrough());
-						motion.sensor.resetGyroValue();
-						motion.turnRight(map.isPassedThrough());
-						map.changeDirec(true);
-						map.changeDirec(true);
-					}
-					break;
-				default:
+			switch (direc) {
+				case RIGHT: map.turnRight(); break;
+				case LEFT : map.turnLeft(); break;
+				case BACK : map.turn(); break;
+				default: break;
 			}
-			map.dispMapInfo();
-			
+
 			//タイル移動
-			if(map.getWallFront() != MapInfo.WALL) {
-				byte result = (byte)(motion.tileForward(map.getWallFront() == 1 ? false : true, map.curRoom == 0 ? true : false));
-				map.setCurPosInfo(MapInfo.PASS);
-				if(result == LQMover.WALL) {
-					map.setWallFront(MapInfo.WALL);
-				} else if(result == LQMover.BLACK) {
-					map.setFrontBlack();
-				} else { 
-					if(result == LQMover.RAMP) {
-						map.setDoorwayExit();
-						Sound.beepSequenceUp();
-						map.changeNextRoom();
-					} else {
-						map.setWallFront((byte)(map.getWallFront()+1));
-						map.moveNextPosition();
-						if(result == LQMover.SILVER) {
-							map.writeFile();
-						}
-						if(map.isReachingFlag()) {
-							map.resetDistanceMap();
-						} else if(map.isStartTile()){
-							map.resetDistanceMap();
-							if(map.curRoom == 0 && map.getCurTileInfo() > 0) {
-								break;
-							} else {
-								map.changePrevRoom();
-								motion.setParallel();
-								motion.turnRight(true);
-								motion.tileForward(true, false);
-								motion.upRamp();
-							}
-						}
-					}
-				}
+			if (!map.isFrontWall()) {
+				map.setTilePass();
+				map.move();
+				if (map.getTile() == Map.FLAG)
+					break;
+				map.setPathBack(Map.PASS);
+				map.dispMapInfo();
+				map.waitForButtonPress(3);
 			}
-			map.dispMapInfo();
 		}
 	}
 }

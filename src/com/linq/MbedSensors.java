@@ -8,7 +8,7 @@ import lejos.nxt.Sound;
 import lejos.nxt.comm.RS485;
 import lejos.util.Delay;
 
-public class LQMbedSensors {
+public class MbedSensors {
 	
 	private byte send[] = new byte[2];
 	private byte get[] = new byte[8];
@@ -27,7 +27,7 @@ public class LQMbedSensors {
 
 	private NXTMotor servo;
 
-	public LQMbedSensors() {
+	public MbedSensors() {
 		RS485.hsEnable(9600, 0);
 		this.servo = new NXTMotor(MotorPort.C);
 		this.servo.setPower(0);
