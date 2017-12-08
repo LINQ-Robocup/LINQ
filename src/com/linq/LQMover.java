@@ -10,6 +10,7 @@ import lejos.util.Delay;
 import lejos.util.Stopwatch;
 
 public class LQMover {
+	enum Tile{NORMAL, CHECK_POINT, BLACK, WALL, UP_RAMP, DOWN_RAMP;}
 	// Create Fields
 	static LQMotor2 leftMotor;
 	static LQMotor2 rightMotor;
@@ -34,11 +35,12 @@ public class LQMover {
 	public static final byte BACK	= 3;
 	
 	//è∞ÇÃéÌóﬁä«óù
-	public static final byte WHITE	= 0;
-	public static final byte BLACK	= 1;
-	public static final byte RAMP	= 2;
-	public static final byte SILVER	= 3;
-	public static final byte WALL   = 4;
+	public static final byte WHITE	   = 0;
+	public static final byte BLACK	   = 1;
+	public static final byte UP_RAMP   = 2;
+	public static final byte SILVER	   = 3;
+	public static final byte WALL      = 4;
+	public static final byte DOWN_RAMP = 2;
 	
 	byte temp_left_cnt	= 0;
 	byte temp_right_cnt = 0;
@@ -332,8 +334,39 @@ public class LQMover {
 			leftMotor.setPower(0);
 			rightMotor.setPower(0);
 		}
-		setParallel();
-		turnLeft(false);
+	}
+	void makeFrontParallel() {
+		leftMotor.setPower(50);
+		rightMotor.setPower(50);
+		leftMotor.backward();
+		rightMotor.forward();
+		while(true) {
+			Delay.msDelay(1);
+			mbed.readAllSensors();
+
+			int a = (mbed.distFrontLeftValue - mbed.distFrontRightValue + 4) *2;
+			double d = (double) (a / 120.0);
+			int val = (int) (Math.tan(d)*180/3.14);
+			if(val > 30) val = 30;
+			else if(val < -30) val = -30;
+			int power = 40 + val / 30 * 40;
+			power = (power > 100) ? 100 : (power < -100) ? -100 : power;
+			leftMotor.setPower(power);
+			rightMotor.setPower(power);
+			if (val < -3 || val > 3) {
+				if (val < 0) {
+					leftMotor.backward();
+					rightMotor.forward();	
+				} else{
+					leftMotor.forward();
+					rightMotor.backward();	
+				}
+			} else {
+				break;
+			}
+		}
+		leftMotor.stop();
+		rightMotor.stop();
 	}
 	
 	public int tileForward(boolean pass, boolean ramp) {
@@ -354,7 +387,7 @@ public class LQMover {
 			if(mbed.sonicValue > 100) {
 				downRamp();
 				Sound.beepSequenceUp();
-				return RAMP;
+				return UP_RAMP;
 			}
 		}
 		while(true) {
@@ -485,8 +518,7 @@ public class LQMover {
 	 * 90ìxâEâÒì]
 	 * @param pass : true)í âﬂçœÇ›, false)ñ¢í âﬂÅEîÌç–é“íTçı(ç∂ë§)
 	 */
-	public void turnRight(boolean pass) {
-		final int speed = 80;
+	public void turnRight(boolean pass, int power) {
 		boolean back_wall_flag = false;
 		int temp_cnt = 0;
 		mbed.readAllSensors();
@@ -506,8 +538,8 @@ public class LQMover {
 			} else {
 				temp_cnt = 0;
 			}
-			leftMotor.setPower(speed);
-			rightMotor.setPower(-speed);
+			leftMotor.setPower(power);
+			rightMotor.setPower(-power);
 			Delay.msDelay(5);
 		}
 		changeDirectionUsingGyro(85);
@@ -520,8 +552,7 @@ public class LQMover {
 	 * 90ìxç∂âÒì]
 	 * @param pass : true)í âﬂçœÇ›, false)ñ¢í âﬂÅEîÌç–é“íTçı(âEë§)
 	 */
-	public void turnLeft(boolean pass) {
-		final int speed = 80;
+	public void turnLeft(boolean pass, int power) {
 		boolean back_wall_flag = false;
 		int temp_cnt = 0;
 		mbed.readAllSensors();
@@ -541,8 +572,8 @@ public class LQMover {
 			} else {
 				temp_cnt = 0;
 			}
-			leftMotor.setPower(-speed);
-			rightMotor.setPower(speed);
+			leftMotor.setPower(-power);
+			rightMotor.setPower(power);
 			Delay.msDelay(5);
 		}
 		changeDirectionUsingGyro(-90);
