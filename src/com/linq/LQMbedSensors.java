@@ -12,6 +12,7 @@ public class LQMbedSensors {
 	
 	private byte send[] = new byte[2];
 	private byte get[] = new byte[10];
+	private byte reset[] = new byte [1];
 	
 	public byte distFrontLeftValue	= 0;
 	public byte distFrontRightValue	= 0;
@@ -44,12 +45,17 @@ public class LQMbedSensors {
 	}
 	
 	public void readAllSensors () {
+		resetBuffer();
 		while(true) {
 			this._readAllSensors();
 			if(this.dummyValue == this.errorValue) break;
 			Sound.beep();
-			Delay.msDelay(10);
+			resetBuffer();
 		}
+	}
+	
+	public void resetBuffer() {
+		while(RS485.hsRead(reset, 0, 1) > 0);
 	}
 	
 	private void _readAllSensors() {
@@ -66,31 +72,23 @@ public class LQMbedSensors {
 		this.cameraLeftValue	= this.get[7];
 		this.cameraRightValue	= this.get[8];
 		this.dummyValue			= this.get[9];
-		Delay.msDelay(10);
 	}
 
 	public void readSonicSensor() {
 		this.send[0] = 2;
+		resetBuffer();
 		RS485.hsWrite(this.send, 0, 1);
 		Delay.msDelay(1000);
 		this._readAllSensors();
-//		while(this.dummyValue != this.errorValue || this.sonicValue == -1) {
-//			Sound.beep();
-////			showSensorValues();
-//			this._readAllSensors();
-//		}
 	}
 	
 	public void readRaspi(boolean direction) {
+		resetBuffer();
 		this.send[0] = (byte) (direction == false ? ENABLE_CAMERA_LEFT : ENABLE_CAMERA_RIGHT);
 		RS485.hsWrite(this.send, 0, 1);
 		Delay.msDelay(1000);
 		this._readAllSensors();
 		Sound.beep();
-//		while(this.dummyValue != this.errorValue) {
-//			Sound.beep();
-//			this._readAllSensors();
-//		}
 	}
 	
 	public void resetSomeValues() {
@@ -175,7 +173,6 @@ public class LQMbedSensors {
 	}
 	
 	public void showSensorValues() {
-		Delay.msDelay(50);
 		LCD.clear();
 		LCD.drawString("FL", 0, 0); LCD.drawInt(this.distFrontLeftValue, 10, 0);
 		LCD.drawString("FR", 0, 1); LCD.drawInt(this.distFrontRightValue, 10, 1);
@@ -185,6 +182,7 @@ public class LQMbedSensors {
 		LCD.drawString("TR", 0, 5); LCD.drawInt(this.tempRightValue, 10, 5);
 		LCD.drawString("U", 0, 6); LCD.drawInt(this.sonicValue, 10, 6);
 		LCD.drawString("DUMMY", 0, 7); LCD.drawInt(this.dummyValue, 10, 7);
+		Delay.msDelay(30);
 	}
 	public void debugAllSensors() {
 		while (!Button.ESCAPE.isDown()) {

@@ -18,8 +18,8 @@ public class Map {
 	//　部屋の数(坂で接続された部屋の最大数)
 	static final byte ROOM 	= 2;
 	// 1部屋のサイズ(縦・横)
-	static final byte HEIGHT = 5 * 2 + 1;
-	static final byte WIDTH  = 9 * 2 + 1;
+	static final byte HEIGHT = 8 * 2 + 1;
+	static final byte WIDTH  = 12 * 2 + 1;
 	// マップ値
 	public static final byte WALL 	= 1;
 	public static final byte PASS 	= 2;
@@ -43,18 +43,12 @@ public class Map {
 	private byte[][][] map = new byte[ROOM][HEIGHT][WIDTH];
 
 	// 現在位置(XY座標, 方向, 部屋)
-	private byte x, y, direc, room;
+	byte x, y, direc, room;
 	
 	private class PosInfo {
 		byte x = 0;
 		byte y = 0;
 		byte d = 0;
-		
-		void setPosInfo(byte x, byte y, byte d) {
-			this.x = x;
-			this.y = y;
-			this.d = d;
-		}
 	}
 	
 	PosInfo[] ent = new PosInfo[ROOM];
@@ -300,6 +294,20 @@ public class Map {
 		map[room][y][x+1] = WALL;
 		map[room][y-1][x] = WALL;
 		map[room][y][x-1] = WALL;
+	}
+	
+	void moveNextRoom() {
+		this.room += 1;
+		this.x = INIT_X;
+		this.y = INIT_Y;
+		this.direc = INIT_DIREC;
+	}
+	
+	void movePrevRoom() {
+		this.room -= 1;
+		this.x = ext[room].x;
+		this.y = ext[room].y;
+		this.direc = (byte) ((byte) (ext[room].d + 2) % 4);
 	}
 	
 	void setTilePass() {
@@ -564,17 +572,24 @@ public class Map {
 	}
 	
 	/**
+	 * 出口の座標とロボットの向きを保存
+	 */
+	public void setExt() {
+		ext[room].x = this.x;
+		ext[room].y = this.y;
+		ext[room].d = this.direc;
+	}
+	
+	/**
 	 * マップ情報をLCDに表示
 	 */
 	public void dispMap() {
 		Graphics g = new Graphics();
-		final byte TILE_WIDTH = (byte) (WIDTH - 1) / 2;
-		final byte TILE_HEIGHT = (byte) (HEIGHT - 1) / 2;
 		/* 縦壁の描画 */
 		byte offset_x = (byte) ((byte)(this.x / DISP_WIDTH) * DISP_WIDTH);
 		byte offset_y = (byte) ((byte)(this.y / DISP_HEIGHT) * DISP_HEIGHT);
-		for(byte i = offset_y; i < offset_y + TILE_HEIGHT; i++) {
-			for(byte j = offset_x; j <= offset_x + TILE_WIDTH; j++) {
+		for(byte i = offset_y; i < offset_y + DISP_HEIGHT; i++) {
+			for(byte j = offset_x; j <= offset_x + DISP_WIDTH; j++) {
 				if(map[room][i*2+1][j*2] == WALL) {
 					g.drawLine((j-offset_x)*10, 63-(i-offset_y)*10-1, 
 							   (j-offset_x)*10, 63-(i-offset_y)*10-9);
@@ -586,8 +601,8 @@ public class Map {
 			}
 		}
 		/* 横壁の描画 */
-		for(byte i = offset_y; i <= offset_y + TILE_HEIGHT; i++) {
-			for(int j = offset_x; j < offset_x + TILE_WIDTH; j++) {
+		for(byte i = offset_y; i <= offset_y + DISP_HEIGHT; i++) {
+			for(int j = offset_x; j < offset_x + DISP_WIDTH; j++) {
 				if(map[room][i*2][j*2+1] == WALL) {
 					g.drawLine((j-offset_x)*10+1, 63-(i-offset_y)*10, 
 							   (j-offset_x)*10+9, 63-(i-offset_y)*10);
@@ -599,8 +614,8 @@ public class Map {
 			}
 		}
 		/* タイル描画 */
-		for(byte i = offset_y; i < offset_y + TILE_HEIGHT; i++) {
-		    for(byte j = offset_x; j < offset_x + TILE_WIDTH; j++) {
+		for(byte i = offset_y; i < offset_y + DISP_HEIGHT; i++) {
+		    for(byte j = offset_x; j < offset_x + DISP_WIDTH; j++) {
 		    	if(map[room][i*2+1][j*2+1] == WALL) {
 		    		/* 黒タイルの描画 */
 		    		for(byte k = 2; k <= 8; k ++)
@@ -622,7 +637,7 @@ public class Map {
 	 */
 	public void dispPosition() {
 		Graphics g = new Graphics();
-		String posInfo = "X:" + this.x + " Y:" + this.y + " D :" + this.direc;
+		String posInfo = "X:" + (this.x / 2 + 1)  + " Y:" + (this.y / 2 + 1) + " D :" + this.direc;
 		String refInfo = "F:" + getPathFront() + 
 						" B:" + getPathBack() + 
 						" R:" + getPathRight() +

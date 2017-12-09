@@ -40,7 +40,7 @@ public class LQMover {
 	public static final byte UP_RAMP   = 2;
 	public static final byte SILVER	   = 3;
 	public static final byte WALL      = 4;
-	public static final byte DOWN_RAMP = 2;
+	public static final byte DOWN_RAMP = 5;
 	
 	byte temp_left_cnt	= 0;
 	byte temp_right_cnt = 0;
@@ -268,6 +268,10 @@ public class LQMover {
 		stop();
 	}
 
+	public void ramp(boolean up) {
+		if (up) upRamp();
+		else downRamp();
+	}
 	
 	public void upRamp() {
 		int speed = 80;

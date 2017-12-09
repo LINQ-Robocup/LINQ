@@ -15,35 +15,6 @@ public class Main {
 		/* センサー情報のデバッグ出力 */
 		motion.sensorSetup();
 		
-		/* にくまんのあそびば */
-		motion.mbed.debugCamera();
-//		while(!Button.ESCAPE.isDown()){
-//			motion.mbed.readRaspi(motion.mbed.cameraLeft);
-//			LCD.clear();
-//			LCD.drawInt(motion.mbed.cameraLeftValue, 1, 1);
-//			LCD.drawInt(motion.mbed.cameraRightValue, 1, 2);
-//			LCD.drawInt(motion.mbed.distFrontLeftValue, 1, 5);
-//			LCD.drawInt(motion.mbed.dummyValue, 1, 7);
-//			Delay.msDelay(1000);
-//			
-//			motion.mbed.readRaspi(motion.mbed.cameraRight);
-//			LCD.clear();
-//			LCD.drawInt(motion.mbed.cameraLeftValue, 1, 1);
-//			LCD.drawInt(motion.mbed.cameraRightValue, 1, 2);
-//			LCD.drawInt(motion.mbed.distFrontLeftValue, 1, 5);
-//			LCD.drawInt(motion.mbed.dummyValue, 1, 7);
-//			Delay.msDelay(1000);
-//		}
-//		while(!Button.ESCAPE.isDown()){
-//			byte get[] = new byte[1];
-//			RS485.hsRead(get, 0, 1);
-//			LCD.clear();
-//			LCD.drawInt(get[0], 1, 1);
-//			Delay.msDelay(10);
-//		}
-
-
-
 		/* マップ情報のリロード */
 		if(map.reload()) map.setCurPosInfo(Map.UNKNOWN);
 		
@@ -109,9 +80,12 @@ public class Main {
 			//タイル移動
 			if (!map.isFrontWall()) {
 				map.move();
-				if (map.getTile() == Map.FLAG) break;
 				map.setPathBack(Map.PASS);
 				map.dispMapInfo();
+				if (map.getTile() == Map.FLAG) {
+					if (map.isFirstRoom()) break;
+					map.movePrevRoom();
+				}
 			}
 		}
 	}
