@@ -4,7 +4,6 @@ import java.util.Queue;
 
 import lejos.nxt.Button;
 import lejos.nxt.MotorPort;
-import lejos.nxt.NXT;
 import lejos.nxt.Sound;
 
 public class MotionToMap extends Map {

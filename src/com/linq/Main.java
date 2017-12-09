@@ -14,7 +14,11 @@ public class Main {
 
 		/* センサー情報のデバッグ出力 */
 		motion.sensorSetup();
-		
+		/* にくまんのあそびば */
+		motion.mbed.debugLeds();
+		motion.mbed.debugServo();
+		motion.mbed.debugCamera();
+
 		/* マップ情報のリロード */
 		if(map.reload()) map.setCurPosInfo(Map.UNKNOWN);
 		
