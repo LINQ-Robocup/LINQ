@@ -33,6 +33,11 @@ public class LQMbedSensors {
 	public final byte ENABLE_CAMERA_LEFT = 31;
 	public final byte ENABLE_CAMERA_RIGHT = 32;
 	public final byte RESET_SOME_VALUES = 35;
+
+	public final byte CAMERA_N = 48;
+	public final byte CAMERA_H = 49;
+	public final byte CAMERA_S = 50;
+	public final byte CAMERA_U = 51;
 	
 
 	private NXTMotor servo;
@@ -54,8 +59,11 @@ public class LQMbedSensors {
 	
 	private void _readAllSensors() {
 		this.send[0] = 1;
+		int ret = 1;
 		RS485.hsWrite(this.send, 0, 1);
-		RS485.hsRead(this.get, 0, 10);
+//		while(ret != 0) {
+			ret = RS485.hsRead(this.get, 0, 10);	
+//		}
 		this.distFrontLeftValue	= this.get[0];
 		this.distFrontRightValue= this.get[1];
 		this.distLeftValue 		= this.get[2];
@@ -86,7 +94,8 @@ public class LQMbedSensors {
 		RS485.hsWrite(this.send, 0, 1);
 		Delay.msDelay(1000);
 		this._readAllSensors();
-		Sound.beep();
+		if(this.cameraLeftValue == 0) Sound.beep();
+//		Sound.beep();
 //		while(this.dummyValue != this.errorValue) {
 //			Sound.beep();
 //			this._readAllSensors();
@@ -96,22 +105,39 @@ public class LQMbedSensors {
 	public void resetSomeValues() {
 		this.send[0] = RESET_SOME_VALUES;
 		RS485.hsWrite(this.send, 0, 1);
+		while (this.cameraLeftValue == 0 && this.cameraRightValue == 0 && this.sonicValue == 0) {
+			readAllSensors();
+		}
+		
 	}
 	
+
 	public void debugCamera() {
-		while (true) {
+		while(Button.ESCAPE.isDown()) {}
+		while (!Button.ESCAPE.isDown()) {
 			if(Button.LEFT.isDown()) readRaspi(cameraLeft);
 			if(Button.RIGHT.isDown()) readRaspi(cameraRight);
-			if(Button.ENTER.isDown()) readSonicSensor();
-			if(Button.ESCAPE.isDown()) {resetSomeValues(); this.readAllSensors();}
+			if(Button.ENTER.isDown()) {
+				resetSomeValues();
+				this.readAllSensors();
+				Sound.playTone(800, 100);
+			}
 			LCD.clear();
 			LCD.drawString("CAMERA_L", 0, 0);
-			LCD.drawInt(this.cameraLeftValue, 10, 0);
+			LCD.drawChar((this.cameraLeftValue == CAMERA_U) ? 'U':
+					     (this.cameraLeftValue == CAMERA_S) ? 'S':
+					     (this.cameraLeftValue == CAMERA_H) ? 'H':
+					     (this.cameraLeftValue == CAMERA_U) ? 'N':'0', 10, 0);
+//			LCD.drawInt(this.cameraLeftValue, 10, 0);
 			LCD.drawString("CAMERA_R", 0, 1);
-			LCD.drawInt(this.cameraRightValue, 10, 1);
+			LCD.drawChar((this.cameraRightValue == CAMERA_U) ? 'U':
+			     (this.cameraRightValue == CAMERA_S) ? 'S':
+			     (this.cameraRightValue == CAMERA_H) ? 'H':
+			     (this.cameraRightValue == CAMERA_U) ? 'N':'0', 10, 1);
+//			LCD.drawInt(this.cameraRightValue, 10, 1);
 			LCD.drawString("SONIC", 0, 3);
 			LCD.drawInt(this.sonicValue, 10, 3);
-			Delay.msDelay(10);
+			Delay.msDelay(100);
 		}
 	}
 	
