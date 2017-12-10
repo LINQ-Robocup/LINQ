@@ -18,12 +18,14 @@ public class Main {
 //		motion.mbed.debugServo();
 //		motion.mbed.debugCamera();
 
+//		for(int i = 0; i < 3; i++) map.move();
+		
 		/* マップ情報のリロード */
 		if(map.reload()) map.setCurPosInfo(Map.UNKNOWN);
 		
 		/* 迷路探索 */
-//		map.setPathBack(motion.isWallBack() ? Map.WALL : Map.FLAG);
-		map.setPathBack(Map.WALL);
+		map.setPathBack(motion.isWallBack() ? Map.WALL : Map.FLAG);
+//		map.setPathBack(Map.WALL);
 		map.dispMap();
 		while(true) {
 			//壁情報の取得(新規)
@@ -42,7 +44,7 @@ public class Main {
 				// マップの整形
 				map.arrangeMap();
 				map.dispMapInfo();
-				map.waitForButtonPress(0);
+//				map.waitForButtonPress(0);
 			}
 			
 			// 進行方向の決定
@@ -80,7 +82,6 @@ public class Main {
 				default: break;
 			}
 			map.dispMapInfo();
-			map.waitForButtonPress(0);
 			
 			//タイル移動
 			if (!map.isFrontWall()) {
@@ -91,7 +92,7 @@ public class Main {
 					if (map.isFirstRoom()) break;
 					map.movePrevRoom();
 				}
-				map.waitForButtonPress(0);
+//				map.waitForButtonPress(0);
 			}
 		}
 	}
