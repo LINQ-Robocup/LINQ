@@ -26,7 +26,7 @@ public class LQMover {
 	private static final byte LIGHT_SILVER_THRESHOLD = 30;
 	
 	//30cm進むためのタコメータカウント
-	private static final int TILE_TACHO = 690;
+	private static final int TILE_TACHO = 700;
 	
 	//各種動作における方向管理用
 	public static final byte LEFT	= 0;
@@ -59,7 +59,7 @@ public class LQMover {
 	public void requestToMbedSensors() {
 //		this.mbed.readSonicSensor();
 //		Delay.msDelay(10);
-		this.mbed.readAllSensors();
+		mbed.readAllSensors();
 	}
 	
 	/**
@@ -86,15 +86,7 @@ public class LQMover {
 	 * @return 壁がある: true 壁がない: false
 	 */
 	public boolean isWallFront() {
-		if (mbed.distFrontLeftValue < 127 && mbed.distFrontRightValue < 127) {
-			return true;
-		} else {
-//			mbed.readSonicSensor();
-//			if(mbed.sonicValue < 25) {
-//				return true;
-//			}
-			return false;
-		}
+		return (mbed.distFrontLeftValue < 127 && mbed.distFrontRightValue < 127);
 	}
 	
 	/**
@@ -115,17 +107,18 @@ public class LQMover {
 		sensor.resetGyroValue();
 		if(compSideDist() > 0) {
 			changeDirectionUsingGyro(-90);
-			mbed.readAllSensors();
-			back = isWallLeft() ? true : false;
-			if(isWallFront()) setParallel();
+			requestToMbedSensors();
+			Sound.buzz();
+			back = isWallLeft();
+			if(isWallFront()) makeFrontParallel();
 		} else {
 			changeDirectionUsingGyro(90);
-			mbed.readAllSensors();
-			back = isWallRight() ? true : false;
-			if(isWallFront()) setParallel();
+			requestToMbedSensors();
+			Sound.buzz();
+			back = isWallRight();
+			if(isWallFront()) makeFrontParallel();
 		}
 		changeDirectionUsingGyro(0);
-//		if(back) backWall();
 		return back;
 	}
 	
@@ -339,6 +332,7 @@ public class LQMover {
 			rightMotor.setPower(0);
 		}
 	}
+	
 	void makeFrontParallel() {
 		leftMotor.setPower(50);
 		rightMotor.setPower(50);
@@ -347,7 +341,6 @@ public class LQMover {
 		while(true) {
 			Delay.msDelay(1);
 			mbed.readAllSensors();
-
 			int a = (mbed.distFrontLeftValue - mbed.distFrontRightValue + 4) *2;
 			double d = (double) (a / 120.0);
 			int val = (int) (Math.tan(d)*180/3.14);
@@ -373,141 +366,189 @@ public class LQMover {
 		rightMotor.stop();
 	}
 	
-	public int tileForward(boolean pass, boolean ramp) {
+	public byte tileForward(boolean pass, boolean ramp) {
 		final int speed = pass ? 90 : 80;
+		byte pwrDiff = 0;
+		byte distRight = 0, distLeft = 0;
 		int rotate = 0;
-		byte tilt_down_cnt = 0; 
-		byte black_tile_cnt = 0;
+//		byte tilt_down_cnt = 0; 
+//		byte black_tile_cnt = 0;
 		boolean front_wall_flag = false;
-		boolean victim_search_flag = (!pass) ? true : false;
-		if(!pass) mbed.toggleLedBlue(true); 
+//		boolean victim_search_flag = (!pass) ? true : false;
+//		if(!pass) mbed.toggleLedBlue(true); 
 		stop();
 		sensor.resetGyroValue();
 		leftMotor.resetTachoCount();
 		rightMotor.resetTachoCount();
-		if(pass == false && ramp == true) {
-			mbed.readSonicSensor();
-			mbed.readAllSensors();
-			if(mbed.sonicValue > 100) {
-				downRamp();
-				Sound.beepSequenceUp();
-				return UP_RAMP;
-			}
-		}
 		while(true) {
 			//回転角の取得
 			rotate = (leftMotor.getTachoCount() + rightMotor.getTachoCount()) / 2;
 			if(rotate > TILE_TACHO) break;
 			//壁衝突
-			if(sensor.isLeftTouchPressed() && sensor.isRightTouchPressed()) {
-				stop();
+			if (sensor.isRightTouchPressed() && sensor.isLeftTouchPressed()) {
 				front_wall_flag = true;
 				break;
-			} else if(sensor.isLeftTouchPressed()) {
-				mbed.readAllSensors();
-				if(isWallFront()) {
-					stop();
-					return WALL;
-				} else {
-					avoidWall(false);
-				}
-			} else if(sensor.isRightTouchPressed()) {
-				mbed.readAllSensors();
-				if(isWallFront()) {
-					stop();
-					return WALL;
-				} else {
-					avoidWall(true);
-				}
+			} else if (sensor.isRightTouchPressed()) {
+				avoidWall(true);
+			} else if (sensor.isLeftTouchPressed()) {
+				avoidWall(false);
 			} else {
 				mbed.readAllSensors();
-				//未通過の場合
-				if(pass == false) {
-					//黒タイル
-					if(sensor.getLightValue() < LIGHT_BLACK_THRESHOLD) {
-						black_tile_cnt ++;
-						if(black_tile_cnt > 5) break;
-					}
-					//被災者検知
-					if(victim_search_flag) {
-						if(mbed.tempLeftValue > TEMP_THRESHOLD) {
-							temp_left_cnt ++;
-							if(temp_left_cnt > 3) {
-								/* 被災者発見(左側) */
-								changeDirectionUsingGyro(90);
-								mbed.dropRescueKit();
-								changeDirectionUsingGyro(0);
-								victim_search_flag = false;
-							}
-						} else if(mbed.tempRightValue > TEMP_THRESHOLD) {
-							temp_left_cnt = 0;
-							temp_right_cnt ++;
-							if(temp_right_cnt > 3) {
-								/* 被災者発見(右側) */
-								changeDirectionUsingGyro(-90);
-								mbed.dropRescueKit();
-								changeDirectionUsingGyro(0);
-								victim_search_flag = false;
-							}
-						} else {
-							temp_left_cnt = 0;
-							temp_right_cnt = 0;
-						}
-					}	
-				}
-				//左右距離制御
-				if(mbed.distLeftValue >= 127 && mbed.distRightValue >= 127) {
-					//直進補正(壁が無い時)
-					float gyro = sensor.getGyroValue() / 100 - this.offset;
-					int pwr = (Math.abs((int)gyro) > 30) ? (Math.abs((int)gyro) > 45) ? 100 : 80 : 50;
-					if(gyro > 3.0) {
-						leftMotor.setPower(-pwr);
-						rightMotor.setPower(pwr);
-					} else if(gyro < -3.0) {
-						leftMotor.setPower(pwr);
-						rightMotor.setPower(-pwr);	
-					} else {
-						leftMotor.setPower(speed);
-						rightMotor.setPower(speed);
-					}
+				distRight = mbed.distRightValue; 
+				distLeft = mbed.distLeftValue;
+				if (isWallLeft() || isWallRight()) {
+//				if (mbed.distLeftValue < 30 || mbed.distRightValue < 30) {
+					if (!isWallLeft()) distLeft = (byte) (70 - distRight);	
+					else if (!isWallRight()) distRight = (byte) (70 - distLeft);
+					pwrDiff = (byte) ((distLeft - distRight) / 5);
+					if (pwrDiff > 5) pwrDiff = 5;
+					else if (pwrDiff < -5) pwrDiff = -5;
 				} else {
-					leftMotor.setPower(speed);
-					rightMotor.setPower(speed);
+					pwrDiff = 0;
 				}
+				leftMotor.setPower(speed - pwrDiff);
+				rightMotor.setPower(speed + pwrDiff);
+				leftMotor.forward();
+				rightMotor.forward();
+				Delay.msDelay(10);
 			}
 		}
 		stop();
-		mbed.toggleLedBlue(false);
-		if(front_wall_flag == true) {
-			return WALL;
-		}
-		if(black_tile_cnt <= 5) {
-			if(sensor.getLightValue() > LIGHT_SILVER_THRESHOLD) {
-				Sound.buzz();
-				return SILVER;
-			} else {
-//				if(pass == false && ramp == true) {
-//					if(mbed.distLeftValue < 127 && mbed.distRightValue < 127) {
-//						if(isTiltDown()) {
-//							downRamp();
-//							return RAMP;
-//						}
-//					}
+		return (byte) 0;
+//		final int speed = pass ? 90 : 80;
+//		int rotate = 0;
+//		byte tilt_down_cnt = 0; 
+//		byte black_tile_cnt = 0;
+//		boolean front_wall_flag = false;
+//		boolean victim_search_flag = (!pass) ? true : false;
+//		if(!pass) mbed.toggleLedBlue(true); 
+//		stop();
+//		sensor.resetGyroValue();
+//		leftMotor.resetTachoCount();
+//		rightMotor.resetTachoCount();
+//		if(pass == false && ramp == true) {
+//			mbed.readSonicSensor();
+//			mbed.readAllSensors();
+//			if(mbed.sonicValue > 100) {
+//				downRamp();
+//				Sound.beepSequenceUp();
+//				return UP_RAMP;
+//			}
+//		}
+//		while(true) {
+//			//回転角の取得
+//			rotate = (leftMotor.getTachoCount() + rightMotor.getTachoCount()) / 2;
+//			if(rotate > TILE_TACHO) break;
+//			//壁衝突
+//			if(sensor.isLeftTouchPressed() && sensor.isRightTouchPressed()) {
+//				stop();
+//				front_wall_flag = true;
+//				break;
+//			} else if(sensor.isLeftTouchPressed()) {
+//				mbed.readAllSensors();
+//				if(isWallFront()) {
+//					stop();
+//					return WALL;
+//				} else {
+//					avoidWall(false);
 //				}
-				return WHITE;
-			}
-		}
-		mbed.toggleLedGreen(true);
-		while(true) {
-			rotate = (leftMotor.getTachoCount() + rightMotor.getTachoCount()) / 2;
-			if(rotate < 0) break;
-			leftMotor.setPower(-speed);
-			rightMotor.setPower(-speed);
-		}
-		stop();
-		mbed.toggleLedGreen(false);
-		Sound.beep();
-		return BLACK;
+//			} else if(sensor.isRightTouchPressed()) {
+//				mbed.readAllSensors();
+//				if(isWallFront()) {
+//					stop();
+//					return WALL;
+//				} else {
+//					avoidWall(true);
+//				}
+//			} else {
+//				mbed.readAllSensors();
+//				//未通過の場合
+//				if(pass == false) {
+//					//黒タイル
+//					if(sensor.getLightValue() < LIGHT_BLACK_THRESHOLD) {
+//						black_tile_cnt ++;
+//						if(black_tile_cnt > 5) break;
+//					}
+//					//被災者検知
+//					if(victim_search_flag) {
+//						if(mbed.tempLeftValue > TEMP_THRESHOLD) {
+//							temp_left_cnt ++;
+//							if(temp_left_cnt > 3) {
+//								/* 被災者発見(左側) */
+//								changeDirectionUsingGyro(90);
+//								mbed.dropRescueKit();
+//								changeDirectionUsingGyro(0);
+//								victim_search_flag = false;
+//							}
+//						} else if(mbed.tempRightValue > TEMP_THRESHOLD) {
+//							temp_left_cnt = 0;
+//							temp_right_cnt ++;
+//							if(temp_right_cnt > 3) {
+//								/* 被災者発見(右側) */
+//								changeDirectionUsingGyro(-90);
+//								mbed.dropRescueKit();
+//								changeDirectionUsingGyro(0);
+//								victim_search_flag = false;
+//							}
+//						} else {
+//							temp_left_cnt = 0;
+//							temp_right_cnt = 0;
+//						}
+//					}	
+//				}
+//				//左右距離制御
+//				if(mbed.distLeftValue >= 127 && mbed.distRightValue >= 127) {
+//					//直進補正(壁が無い時)
+//					float gyro = sensor.getGyroValue() / 100 - this.offset;
+//					int pwr = (Math.abs((int)gyro) > 30) ? (Math.abs((int)gyro) > 45) ? 100 : 80 : 50;
+//					if(gyro > 3.0) {
+//						leftMotor.setPower(-pwr);
+//						rightMotor.setPower(pwr);
+//					} else if(gyro < -3.0) {
+//						leftMotor.setPower(pwr);
+//						rightMotor.setPower(-pwr);	
+//					} else {
+//						leftMotor.setPower(speed);
+//						rightMotor.setPower(speed);
+//					}
+//				} else {
+//					leftMotor.setPower(speed);
+//					rightMotor.setPower(speed);
+//				}
+//			}
+//		}
+//		stop();
+//		mbed.toggleLedBlue(false);
+//		if(front_wall_flag == true) {
+//			return WALL;
+//		}
+//		if(black_tile_cnt <= 5) {
+//			if(sensor.getLightValue() > LIGHT_SILVER_THRESHOLD) {
+//				Sound.buzz();
+//				return SILVER;
+//			} else {
+////				if(pass == false && ramp == true) {
+////					if(mbed.distLeftValue < 127 && mbed.distRightValue < 127) {
+////						if(isTiltDown()) {
+////							downRamp();
+////							return RAMP;
+////						}
+////					}
+////				}
+//				return WHITE;
+//			}
+//		}
+//		mbed.toggleLedGreen(true);
+//		while(true) {
+//			rotate = (leftMotor.getTachoCount() + rightMotor.getTachoCount()) / 2;
+//			if(rotate < 0) break;
+//			leftMotor.setPower(-speed);
+//			rightMotor.setPower(-speed);
+//		}
+//		stop();
+//		mbed.toggleLedGreen(false);
+//		Sound.beep();
+//		return BLACK;
 	}
 
 	/**
@@ -523,33 +564,37 @@ public class LQMover {
 	 * @param pass : true)通過済み, false)未通過・被災者探索(左側)
 	 */
 	public void turnRight(boolean pass, int power) {
-		boolean back_wall_flag = false;
-		int temp_cnt = 0;
-		mbed.readAllSensors();
-		if(!pass) mbed.toggleLedBlue(true);
-		if(isWallLeft()) back_wall_flag = true;
-		if(isWallFront()) setParallel(); 
-		while(pass == false && sensor.getGyroValue() < 8000) {
-			mbed.readAllSensors();
-			if(mbed.tempLeftValue > TEMP_THRESHOLD) {
-				temp_cnt ++;
-				if(temp_cnt > 2) {
-					/* 被災者発見 */
-					changeDirectionUsingGyro(sensor.getGyroValue()/100 + 90);
-					mbed.dropRescueKit();
-					pass = true;
-				} 
-			} else {
-				temp_cnt = 0;
-			}
-			leftMotor.setPower(power);
-			rightMotor.setPower(-power);
-			Delay.msDelay(5);
-		}
-		changeDirectionUsingGyro(85);
-		mbed.toggleLedBlue(false);
-		this.setGyroOffset(9000);
-		if(back_wall_flag) backWall();
+		stop();
+		sensor.resetGyroValue();
+		changeDirectionUsingGyro(90);
+		stop();
+//		boolean back_wall_flag = false;
+//		int temp_cnt = 0;
+//		mbed.readAllSensors();
+//		if(!pass) mbed.toggleLedBlue(true);
+//		if(isWallLeft()) back_wall_flag = true;
+//		if(isWallFront()) setParallel(); 
+//		while(pass == false && sensor.getGyroValue() < 8000) {
+//			mbed.readAllSensors();
+//			if(mbed.tempLeftValue > TEMP_THRESHOLD) {
+//				temp_cnt ++;
+//				if(temp_cnt > 2) {
+//					/* 被災者発見 */
+//					changeDirectionUsingGyro(sensor.getGyroValue()/100 + 90);
+//					mbed.dropRescueKit();
+//					pass = true;
+//				} 
+//			} else {
+//				temp_cnt = 0;
+//			}
+//			leftMotor.setPower(power);
+//			rightMotor.setPower(-power);
+//			Delay.msDelay(5);
+//		}
+//		changeDirectionUsingGyro(85);
+//		mbed.toggleLedBlue(false);
+//		this.setGyroOffset(9000);
+//		if(back_wall_flag) backWall();
 	}
 	
 	/**
@@ -557,33 +602,37 @@ public class LQMover {
 	 * @param pass : true)通過済み, false)未通過・被災者探索(右側)
 	 */
 	public void turnLeft(boolean pass, int power) {
-		boolean back_wall_flag = false;
-		int temp_cnt = 0;
-		mbed.readAllSensors();
-		if(!pass) mbed.toggleLedBlue(true); 
-		if(isWallRight()) back_wall_flag = true;
-		if(isWallFront()) setParallel();
-		while(pass == false && sensor.getGyroValue() > -8000) {
-			mbed.readAllSensors();
-			if(mbed.tempRightValue > TEMP_THRESHOLD) {
-				temp_cnt ++;
-				if(temp_cnt > 2) {
-					/* 被災者発見 */
-					changeDirectionUsingGyro(sensor.getGyroValue()/100 - 90);
-					mbed.dropRescueKit();
-					pass = true;
-				} 
-			} else {
-				temp_cnt = 0;
-			}
-			leftMotor.setPower(-power);
-			rightMotor.setPower(power);
-			Delay.msDelay(5);
-		}
+		stop();
+		sensor.resetGyroValue();
 		changeDirectionUsingGyro(-90);
-		mbed.toggleLedBlue(false);
-		this.setGyroOffset(-9000);
-		if(back_wall_flag) backWall();
+		stop();
+//		boolean back_wall_flag = false;
+//		int temp_cnt = 0;
+//		mbed.readAllSensors();
+//		if(!pass) mbed.toggleLedBlue(true); 
+//		if(isWallRight()) back_wall_flag = true;
+//		if(isWallFront()) setParallel();
+//		while(pass == false && sensor.getGyroValue() > -8000) {
+//			mbed.readAllSensors();
+//			if(mbed.tempRightValue > TEMP_THRESHOLD) {
+//				temp_cnt ++;
+//				if(temp_cnt > 2) {
+//					/* 被災者発見 */
+//					changeDirectionUsingGyro(sensor.getGyroValue()/100 - 90);
+//					mbed.dropRescueKit();
+//					pass = true;
+//				} 
+//			} else {
+//				temp_cnt = 0;
+//			}
+//			leftMotor.setPower(-power);
+//			rightMotor.setPower(power);
+//			Delay.msDelay(5);
+//		}
+//		changeDirectionUsingGyro(-90);
+//		mbed.toggleLedBlue(false);
+//		this.setGyroOffset(-9000);
+//		if(back_wall_flag) backWall();
 	}
 	
 	/**
