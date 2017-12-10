@@ -46,9 +46,9 @@ public class Map {
 	byte x, y, direc, room;
 	
 	private class PosInfo {
-		byte x = 0;
-		byte y = 0;
-		byte d = 0;
+		byte x = INIT_X;
+		byte y = INIT_Y;
+		byte d = INIT_DIREC;
 	}
 	
 	PosInfo[] ent = new PosInfo[ROOM];
