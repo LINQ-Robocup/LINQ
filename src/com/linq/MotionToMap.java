@@ -25,25 +25,26 @@ public class MotionToMap extends Map {
 	RealWall real = new RealWall();
 	
 	void turnRight() {
-//		nxt.turnRight(isTilePassed(), 80);
+		nxt.turnRight(isTilePassed(), 80);
 		changeDirec(true);
 	}
 	
 	void turnLeft() {
-//		nxt.turnLeft(isTilePassed(), 60);
+		nxt.turnLeft(isTilePassed(), 60);
 		changeDirec(false);
 	}
 	
 	void turn() {
-//		nxt.turnLeft(isTilePassed(), 60);
+		nxt.turnLeft(isTilePassed(), 60);
 		changeDirec(true);
-//		nxt.turnLeft(isTilePassed(), 60);
+		nxt.turnLeft(isTilePassed(), 60);
 		changeDirec(true);
 	}
 	
 	void move() {
 		setTilePass();
 //		byte result = (byte) nxt.tileForward((getPathFront()==Map.PASS), false);
+		nxt.tileForward(false, false);
 //		switch (result) {
 //			case LQMover.UP_RAMP:
 //			case LQMover.DOWN_RAMP:
@@ -90,8 +91,8 @@ public class MotionToMap extends Map {
 	}
 	
 	void updateRealWallInfo() {
-//		for(int i = 0; i < 10; i++) 
-		nxt.requestToMbedSensors();
+		nxt.mbed.resetBuffer();
+		for(int i = 0; i < 10; i++) nxt.requestToMbedSensors();
 	}
 	
 	void waitForButtonPress(int i) {
