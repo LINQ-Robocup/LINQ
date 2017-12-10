@@ -50,16 +50,13 @@ public class LQMbedSensors {
 	}
 	
 	public void readAllSensors () {
-		resetBuffer();
-		for (int i = 0; i < 10; i++) {
-//		while(true) {
+		while(true) {
 			this._readAllSensors();
-//			if(this.dummyValue == this.errorValue) break;
-//			Sound.beep();
-//			resetBuffer();
+			if(this.dummyValue == this.errorValue) break;
+			Sound.beep();
 			Delay.msDelay(30);
 		}
-		
+//		resetBuffer();	
 	}
 	
 	public void resetBuffer() {
@@ -95,13 +92,14 @@ public class LQMbedSensors {
 	
 	public void readRaspi(boolean direction) {
 		resetBuffer();
+//		resetSomeValues();
 		this.send[0] = (byte) (direction == false ? ENABLE_CAMERA_LEFT : ENABLE_CAMERA_RIGHT);
 		RS485.hsWrite(this.send, 0, 1);
 		while(true) {
 			this._readAllSensors();
 			if (direction == true && this.cameraRightValue != 0) break;
 			else if (direction == false && this.cameraLeftValue != 0) break;
-//			LCD.clear();
+			LCD.clear();
 			Delay.msDelay(30);
 		}
 	}
@@ -132,13 +130,11 @@ public class LQMbedSensors {
 					     (this.cameraLeftValue == CAMERA_S) ? 'S':
 					     (this.cameraLeftValue == CAMERA_H) ? 'H':
 					     (this.cameraLeftValue == CAMERA_N) ? 'N':'0', 10, 0);
-//			LCD.drawInt(this.cameraLeftValue, 10, 0);
 			LCD.drawString("CAMERA_R", 0, 1);
 			LCD.drawChar((this.cameraRightValue == CAMERA_U) ? 'U':
 			     		 (this.cameraRightValue == CAMERA_S) ? 'S':
 			     		 (this.cameraRightValue == CAMERA_H) ? 'H':
 			     		 (this.cameraRightValue == CAMERA_N) ? 'N':'0', 10, 1);
-//			LCD.drawInt(this.cameraRightValue, 10, 1);
 			LCD.drawString("SONIC", 0, 3);
 			LCD.drawInt(this.sonicValue, 10, 3);
 			Delay.msDelay(100);
