@@ -51,12 +51,15 @@ public class LQMbedSensors {
 	
 	public void readAllSensors () {
 		resetBuffer();
-		while(true) {
+		for (int i = 0; i < 10; i++) {
+//		while(true) {
 			this._readAllSensors();
-			if(this.dummyValue == this.errorValue) break;
-			Sound.beep();
-			resetBuffer();
+//			if(this.dummyValue == this.errorValue) break;
+//			Sound.beep();
+//			resetBuffer();
+			Delay.msDelay(30);
 		}
+		
 	}
 	
 	public void resetBuffer() {
@@ -128,13 +131,13 @@ public class LQMbedSensors {
 			LCD.drawChar((this.cameraLeftValue == CAMERA_U) ? 'U':
 					     (this.cameraLeftValue == CAMERA_S) ? 'S':
 					     (this.cameraLeftValue == CAMERA_H) ? 'H':
-					     (this.cameraLeftValue == CAMERA_U) ? 'N':'0', 10, 0);
+					     (this.cameraLeftValue == CAMERA_N) ? 'N':'0', 10, 0);
 //			LCD.drawInt(this.cameraLeftValue, 10, 0);
 			LCD.drawString("CAMERA_R", 0, 1);
 			LCD.drawChar((this.cameraRightValue == CAMERA_U) ? 'U':
-			     (this.cameraRightValue == CAMERA_S) ? 'S':
-			     (this.cameraRightValue == CAMERA_H) ? 'H':
-			     (this.cameraRightValue == CAMERA_U) ? 'N':'0', 10, 1);
+			     		 (this.cameraRightValue == CAMERA_S) ? 'S':
+			     		 (this.cameraRightValue == CAMERA_H) ? 'H':
+			     		 (this.cameraRightValue == CAMERA_N) ? 'N':'0', 10, 1);
 //			LCD.drawInt(this.cameraRightValue, 10, 1);
 			LCD.drawString("SONIC", 0, 3);
 			LCD.drawInt(this.sonicValue, 10, 3);
