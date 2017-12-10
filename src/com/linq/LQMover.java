@@ -57,8 +57,8 @@ public class LQMover {
 	 * mbed‚ÉƒZƒ“ƒTî•ñ‚ğ—v‹
 	 */
 	public void requestToMbedSensors() {
-		this.mbed.readSonicSensor();
-		Delay.msDelay(10);
+//		this.mbed.readSonicSensor();
+//		Delay.msDelay(10);
 		this.mbed.readAllSensors();
 	}
 	

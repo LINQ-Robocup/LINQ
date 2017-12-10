@@ -25,42 +25,42 @@ public class MotionToMap extends Map {
 	RealWall real = new RealWall();
 	
 	void turnRight() {
-		nxt.turnRight(isTilePassed(), 80);
+//		nxt.turnRight(isTilePassed(), 80);
 		changeDirec(true);
 	}
 	
 	void turnLeft() {
-		nxt.turnLeft(isTilePassed(), 60);
+//		nxt.turnLeft(isTilePassed(), 60);
 		changeDirec(false);
 	}
 	
 	void turn() {
-		nxt.turnLeft(isTilePassed(), 60);
+//		nxt.turnLeft(isTilePassed(), 60);
 		changeDirec(true);
-		nxt.turnLeft(isTilePassed(), 60);
+//		nxt.turnLeft(isTilePassed(), 60);
 		changeDirec(true);
 	}
 	
 	void move() {
 		setTilePass();
-		byte result = (byte) nxt.tileForward((getPathFront()==Map.PASS), false);
-		switch (result) {
-			case LQMover.UP_RAMP:
-			case LQMover.DOWN_RAMP:
-				setExt();
-				moveNextRoom(result == LQMover.UP_RAMP);
-				break;
-			case LQMover.BLACK: 
-				setFrontBlack(); 
-				break;
-			case LQMover.WALL:	
-				setPathFront(WALL); 
-				break;
-			default:
+//		byte result = (byte) nxt.tileForward((getPathFront()==Map.PASS), false);
+//		switch (result) {
+//			case LQMover.UP_RAMP:
+//			case LQMover.DOWN_RAMP:
+//				setExt();
+//				moveNextRoom(result == LQMover.UP_RAMP);
+//				break;
+//			case LQMover.BLACK: 
+//				setFrontBlack(); 
+//				break;
+//			case LQMover.WALL:	
+//				setPathFront(WALL); 
+//				break;
+//			default:
 				moveTile();
-				break;
-		}
-		if (result == LQMover.SILVER) writeFile();
+//				break;
+//		}
+//		if (result == LQMover.SILVER) writeFile();
 	}
 	
 	boolean isFirstRoom() {
@@ -90,7 +90,7 @@ public class MotionToMap extends Map {
 	}
 	
 	void updateRealWallInfo() {
-		for(int i = 0; i < 10; i++) 
+//		for(int i = 0; i < 10; i++) 
 		nxt.requestToMbedSensors();
 	}
 	

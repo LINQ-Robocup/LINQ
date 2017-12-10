@@ -586,8 +586,8 @@ public class Map {
 	public void dispMap() {
 		Graphics g = new Graphics();
 		/* 縦壁の描画 */
-		byte offset_x = (byte) ((byte)(this.x / DISP_WIDTH) * DISP_WIDTH);
-		byte offset_y = (byte) ((byte)(this.y / DISP_HEIGHT) * DISP_HEIGHT);
+		byte offset_x = (byte) ((byte)((this.x / 2) / DISP_WIDTH) * DISP_WIDTH);
+		byte offset_y = (byte) ((byte)((this.y / 2) / DISP_HEIGHT) * DISP_HEIGHT);
 		for(byte i = offset_y; i < offset_y + DISP_HEIGHT; i++) {
 			for(byte j = offset_x; j <= offset_x + DISP_WIDTH; j++) {
 				if(map[room][i*2+1][j*2] == WALL) {
@@ -644,10 +644,10 @@ public class Map {
 						" L:" + getPathLeft();
 		LCD.drawString(posInfo, 0, 0);
 		LCD.drawString(refInfo, 0, 1);
-		byte tmp_x = (byte) (this.x - (byte) (this.x / DISP_WIDTH) * DISP_WIDTH);
-		byte tmp_y = (byte) (this.y - (byte) (this.y / DISP_HEIGHT) * DISP_HEIGHT);
-		final byte x = (byte) (tmp_x - (this.x / 2) - 1);
-		final byte y = (byte) (tmp_y - (this.y / 2) - 1);
+		byte tmp_x = (byte) (this.x - (byte) (this.x / (DISP_WIDTH*2)) * (DISP_WIDTH*2));
+		byte tmp_y = (byte) (this.y - (byte) (this.y / (DISP_HEIGHT*2)) * (DISP_HEIGHT*2));
+		final byte x = (byte) (tmp_x - (tmp_x / 2) - 1);
+		final byte y = (byte) (tmp_y - (tmp_y / 2) - 1);
 		switch(this.direc) {
 			case NORTH:
 				g.drawLine(x * 10 + 5, 63 - (y * 10 + 2), x * 10 + 5, 63 - (y * 10 + 8));
