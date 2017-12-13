@@ -17,15 +17,12 @@ public class Main {
 //		motion.mbed.debugLeds();
 //		motion.mbed.debugServo();
 //		motion.mbed.debugCamera();
-
-//		for(int i = 0; i < 3; i++) map.move();
 		
 		/* マップ情報のリロード */
 		if(map.reload()) map.setCurPosInfo(Map.UNKNOWN);
 		
 		/* 迷路探索 */
 		map.setPathBack(motion.isWallBack() ? Map.WALL : Map.FLAG);
-//		map.setPathBack(Map.WALL);
 		map.dispMap();
 		while(true) {
 			//壁情報の取得(新規)
@@ -86,13 +83,11 @@ public class Main {
 			//タイル移動
 			if (!map.isFrontWall()) {
 				map.move();
-				map.setPathBack(Map.PASS);
 				map.dispMapInfo();
 				if (map.getTile() == Map.FLAG) {
 					if (map.isFirstRoom()) break;
 					map.movePrevRoom();
 				}
-//				map.waitForButtonPress(0);
 			}
 		}
 	}
