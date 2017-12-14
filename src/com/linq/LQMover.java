@@ -2,6 +2,8 @@ package com.linq;
 
 import java.lang.Math;
 
+import javax.microedition.sensor.GyroChannelInfo;
+
 import lejos.nxt.Button;
 import lejos.nxt.LCD;
 import lejos.nxt.Sound;
@@ -21,7 +23,7 @@ public class LQMover {
 	
 	//センサ閾値 
 	private static final byte TEMP_THRESHOLD = 30;
-	private static final byte LIGHT_BLACK_THRESHOLD = 25;
+	private static final byte LIGHT_BLACK_THRESHOLD = 20;
 	private static final byte LIGHT_SILVER_THRESHOLD = 30;
 	
 	//30cm進むためのタコメータカウント
@@ -54,9 +56,14 @@ public class LQMover {
 	 * mbedにセンサ情報を要求
 	 */
 	public void requestToMbedSensors() {
-//		this.mbed.readSonicSensor();
-//		Delay.msDelay(10);
-		this.mbed.readAllSensors();
+//		mbed.resetBuffer();
+		for (int i = 0; i < 10; i++) {
+			mbed.readAllSensors();
+			Delay.msDelay(30);
+		}
+//		mbed.showSensorValues();
+//		while(!Button.ENTER.isDown());
+//		while(Button.ENTER.isDown());
 	}
 	
 	/**
@@ -109,19 +116,20 @@ public class LQMover {
 	public boolean isWallBack() {
 		boolean back = false;
 		stop();
-		sensor.resetGyroValue();
+//		sensor.resetGyroValue();
+		int firstDirec = sensor.getGyroValue();
 		if(compSideDist() > 0) {
-			changeDirectionUsingGyro(-90);
+			changeDirectionUsingGyro(firstDirec, -9000);
 			mbed.readAllSensors();
 			back = isWallLeft() ? true : false;
 			if(isWallFront()) setParallel();
 		} else {
-			changeDirectionUsingGyro(90);
+			changeDirectionUsingGyro(firstDirec, 9000);
 			mbed.readAllSensors();
 			back = isWallRight() ? true : false;
 			if(isWallFront()) setParallel();
 		}
-		changeDirectionUsingGyro(0);
+		changeDirectionUsingGyro(firstDirec, 0);
 //		if(back) backWall();
 		return back;
 	}
@@ -348,71 +356,77 @@ public class LQMover {
 		byte temp_right_cnt = 0;
 		byte black_tile_cnt = 0;
 		boolean front_wall_flag = false;
-		boolean victim_search_flag = (!pass) ? true : false;
-		if(!pass) mbed.toggleLedBlue(true); 
+		boolean victim_search_flag = false;//(!pass) ? true : false; 
 		stop();
-		sensor.resetGyroValue();
+		if (!pass) {
+			mbed.readSonicSensor();
+			mbed.readAllSensors();
+			if(mbed.sonicValue >= 100) {
+				downRamp();
+				return DOWN_RAMP;
+			}
+		}
+//		sensor.resetGyroValue();
 		leftMotor.resetTachoCount();
 		rightMotor.resetTachoCount();
-//		if (!pass) {
-//			mbed.readSonicSensor();
-//			if(mbed.sonicValue >= 127) downRamp();
-//			return DOWN_RAMP;
-//		}
+		mbed.toggleLedBlue(false);
+		if(!pass) mbed.toggleLedBlue(true);
+		int firstDirec = sensor.getGyroValue();
 		while(true) {
 			//回転角の取得
 			rotate = (leftMotor.getTachoCount() + rightMotor.getTachoCount()) / 2;
-			if(rotate > TILE_TACHO) break;
+			if(rotate >= TILE_TACHO) break;
 			//壁衝突
 			if(sensor.isLeftTouchPressed() && sensor.isRightTouchPressed()) {
-				front_wall_flag = true;
+				if (!pass) front_wall_flag = true;
 				break;
 			} else if(sensor.isLeftTouchPressed()) {
 				mbed.readAllSensors();
 				if(isWallFront()) {
-					stop();
-					return WALL;
+					if (!pass) front_wall_flag = true;
+					break;
 				} else {
 					avoidWall(false);
 				}
 			} else if(sensor.isRightTouchPressed()) {
 				mbed.readAllSensors();
 				if(isWallFront()) {
-					stop();
-					return WALL;
+					if (!pass) front_wall_flag = true;
+					break;
 				} else {
 					avoidWall(true);
 				}
 			} else {
 				mbed.readAllSensors();
 				//未通過の場合
-				if(pass == false && rotate > 60 && rotate < 600) {
+				if(!pass && rotate > 90 && rotate < 600) {
 					//黒タイル
 					if(sensor.getLightValue() < LIGHT_BLACK_THRESHOLD) {
 						black_tile_cnt ++;
-						if(black_tile_cnt > 10) break;
+						if(black_tile_cnt >= 10) break;
 					} else {
 						black_tile_cnt = 0;
 					}
 					//被災者検知
 					if(victim_search_flag) {
-						if(mbed.tempLeftValue > TEMP_THRESHOLD) {
+						if(mbed.distLeftValue < 100 && mbed.tempLeftValue > TEMP_THRESHOLD) {
+							temp_right_cnt = 0;
 							temp_left_cnt ++;
-							if(temp_left_cnt > 0) {
+							if(temp_left_cnt > 1) {
 								/* 被災者発見(左側) */
-								changeDirectionUsingGyro(90);
+								changeDirectionUsingGyro(firstDirec, 9000);
 								mbed.dropRescueKit();
-								changeDirectionUsingGyro(0);
+								changeDirectionUsingGyro(firstDirec, 0);
 								victim_search_flag = false;
 							}
-						} else if(mbed.tempRightValue > TEMP_THRESHOLD) {
+						} else if(mbed.distRightValue < 100 && mbed.tempRightValue > TEMP_THRESHOLD) {
 							temp_left_cnt = 0;
 							temp_right_cnt ++;
-							if(temp_right_cnt > 0) {
+							if(temp_right_cnt > 1) {
 								/* 被災者発見(右側) */
-								changeDirectionUsingGyro(-90);
+								changeDirectionUsingGyro(firstDirec, -9000);
 								mbed.dropRescueKit();
-								changeDirectionUsingGyro(0);
+								changeDirectionUsingGyro(firstDirec, 0);
 								victim_search_flag = false;
 							}
 						} else {
@@ -422,62 +436,61 @@ public class LQMover {
 					}	
 				}
 				//左右距離制御
-				if(mbed.distLeftValue >= 127 && mbed.distRightValue >= 127) {
+				if(mbed.distLeftValue > 100 && mbed.distRightValue > 100) {
 					//直進補正(壁が無い時)
-					float gyro = sensor.getGyroValue() / 100 - this.offset;
-					int pwr = (Math.abs((int)gyro) > 30) ? (Math.abs((int)gyro) > 45) ? 100 : 80 : 50;
-					if(gyro > 3.0) {
-						leftMotor.setPower(-pwr);
-						rightMotor.setPower(pwr);
-					} else if(gyro < -3.0) {
-						leftMotor.setPower(pwr);
-						rightMotor.setPower(-pwr);	
+					int gyro = sensor.getGyroValue();
+					if (gyro < 0) gyro += 36000;
+					gyro -= firstDirec;
+					if (gyro < 0) gyro += 36000;
+					int pwr = (gyro > 33000 || gyro < 3000) ? 60 : 
+							  (gyro > 31500 || gyro < 4500) ? 80 : 100;
+					leftMotor.setPower(pwr);
+					rightMotor.setPower(pwr);
+					if (gyro < 200 || gyro > 35800) break;
+					if(gyro <= 18000) {
+						leftMotor.backward();
+						rightMotor.forward();
 					} else {
-						leftMotor.setPower(speed);
-						rightMotor.setPower(speed);
+						leftMotor.forward();
+						rightMotor.backward();	
 					}
 				} else {
 					leftMotor.setPower(80);
 					rightMotor.setPower(80);
-//					if(mbed.distLeftValue >= 127) mbed.distLeftValue = 40;
-//					else if(mbed.distRightValue >= 127) mbed.distRightValue = 40;
-//					leftMotor.setPower(speed-compSideDist()/2);
-//					rightMotor.setPower(speed-compSideDist()/2);
+					leftMotor.forward();
+					rightMotor.forward();
 				}
+				Delay.msDelay(10);
 			}
 		}
-		Sound.buzz();
 		stop();
-		mbed.toggleLedBlue(false);
-		if(front_wall_flag == true) {
-			return WALL;
-		}
-		if(black_tile_cnt <= 10) {
+		for (int i = 0; i < 5; i++) mbed.toggleLedBlue(false);
+		if (((rotate > TILE_TACHO/2) || !front_wall_flag) && black_tile_cnt < 10) {
 			if(pass != true) {
-				sensor.resetGyroValue();
+				Delay.msDelay(100);
 				if(isTiltUp()) {
 					Sound.beepSequence();
 					upRamp();
-					return RAMP;
+					return UP_RAMP;
 				}
 			}
-			if(sensor.getLightValue() > LIGHT_SILVER_THRESHOLD) {
+			if(sensor.getLightValue() > LIGHT_SILVER_THRESHOLD && sensor.getLightValue() < 90) {
 				Sound.buzz();
 				return SILVER;
 			} else {
 				return WHITE;
 			}
 		}
-		mbed.toggleLedGreen(true);
 		while(true) {
 			rotate = (leftMotor.getTachoCount() + rightMotor.getTachoCount()) / 2;
-			if(rotate < 0) break;
-			leftMotor.setPower(-speed);
-			rightMotor.setPower(-speed);
+			if(rotate <= 0) break;
+			leftMotor.setPower(60);
+			rightMotor.setPower(60);
+			leftMotor.backward();
+			rightMotor.backward();
 		}
 		stop();
-		mbed.toggleLedGreen(false);
-		Sound.beep();
+		if (front_wall_flag) return WALL;
 		return BLACK;
 	}
 
@@ -497,17 +510,21 @@ public class LQMover {
 		final int speed = 80;
 		boolean back_wall_flag = false;
 		int temp_cnt = 0;
+		mbed.toggleLedBlue(false);
 		mbed.readAllSensors();
 		if(!pass) mbed.toggleLedBlue(true);
 		if(isWallLeft()) back_wall_flag = true;
-		if(isWallFront()) setParallel(); 
-		while(pass == false && sensor.getGyroValue() < 7000) {
+		leftMotor.resetTachoCount();
+		rightMotor.resetTachoCount();
+		int firstDirec = sensor.getGyroValue();
+		while(!pass) {
 			mbed.readAllSensors();
-			if(mbed.tempLeftValue > TEMP_THRESHOLD) {
+			if (leftMotor.getTachoCount() > 270) break;
+			if(mbed.distLeftValue < 100 && mbed.tempLeftValue > TEMP_THRESHOLD) {
 				temp_cnt ++;
 				if(temp_cnt > 0) {
 					/* 被災者発見 */
-					changeDirectionUsingGyro(sensor.getGyroValue()/100 + 90);
+					changeDirectionUsingGyro(sensor.getGyroValue(), 9000);
 					mbed.dropRescueKit();
 					pass = true;
 				} 
@@ -515,13 +532,15 @@ public class LQMover {
 				temp_cnt = 0;
 			}
 			leftMotor.setPower(speed);
-			rightMotor.setPower(-speed);
-			Delay.msDelay(10);
+			rightMotor.setPower(speed);
+			leftMotor.forward();
+			rightMotor.backward();
+			Delay.msDelay(30);
 		}
-		changeDirectionUsingGyro(80);
+		changeDirectionUsingGyro(firstDirec, 9000);
 		mbed.toggleLedBlue(false);
 		this.setGyroOffset(9000);
-		if(back_wall_flag) backWall();
+//		if(back_wall_flag) backWall();
 	}
 	
 	/**
@@ -532,31 +551,37 @@ public class LQMover {
 		final int speed = 80;
 		boolean back_wall_flag = false;
 		int temp_cnt = 0;
+		mbed.toggleLedBlue(false);
 		mbed.readAllSensors();
 		if(!pass) mbed.toggleLedBlue(true); 
 		if(isWallRight()) back_wall_flag = true;
-		if(isWallFront()) setParallel();
-		while(pass == false && sensor.getGyroValue() > -7000) {
+		int firstDirec = sensor.getGyroValue();
+		leftMotor.resetTachoCount();
+		rightMotor.resetTachoCount();
+		while(!pass) {
 			mbed.readAllSensors();
-			if(mbed.tempRightValue > TEMP_THRESHOLD) {
+			if (rightMotor.getTachoCount() > 270) break;
+			if(mbed.distRightValue < 100 && mbed.tempRightValue > TEMP_THRESHOLD) {
 				temp_cnt ++;
 				if(temp_cnt > 0) {
 					/* 被災者発見 */
-					changeDirectionUsingGyro(sensor.getGyroValue()/100 - 90);
+					changeDirectionUsingGyro(sensor.getGyroValue(), -9000);
 					mbed.dropRescueKit();
 					pass = true;
 				} 
 			} else {
 				temp_cnt = 0;
 			}
-			leftMotor.setPower(-speed);
+			leftMotor.setPower(speed);
 			rightMotor.setPower(speed);
-			Delay.msDelay(10);
+			leftMotor.backward();
+			rightMotor.forward();
+			Delay.msDelay(30);
 		}
-		changeDirectionUsingGyro(-80);
+		changeDirectionUsingGyro(firstDirec, -9000);
 		mbed.toggleLedBlue(false);
 		this.setGyroOffset(-9000);
-		if(back_wall_flag) backWall();
+//		if(back_wall_flag) backWall();
 	}
 	
 	/**
@@ -564,19 +589,25 @@ public class LQMover {
 	 * @param direction : 目標角度(-18000 ~ 18000)
 	 * @param pass : true)通過済み, false)未通過・被災者探索
 	 */
-	public void changeDirectionUsingGyro (int direction) {
+	public void changeDirectionUsingGyro (int offset, int direction) {
+		if (direction < 0) direction += 36000;
 		while(true) {
-			/* 目標角度が0になるように curDirectionの値を設定 */
-			float gyro = sensor.getGyroValue() / 100 - direction - this.offset;
-			int pwr = (Math.abs((int)gyro) > 30) ? ((Math.abs((int)gyro) > 45) ? 100 : 80) : 50;
-			if(gyro > 2.5) {
-				leftMotor.setPower(-pwr);
-				rightMotor.setPower(pwr);
-			} else if(gyro < -2.5){
-				leftMotor.setPower(pwr);
-				rightMotor.setPower(-pwr);	
+			long gyro = sensor.getGyroValue();	if (gyro < 0) gyro += 36000;
+			gyro -= offset;						if (gyro < 0) gyro += 36000;
+			gyro -= direction;					if (gyro < 0) gyro += 36000;
+			int pwr = (gyro > 33000 || gyro < 3000) ? 60 : 
+					  (gyro > 31500 || gyro < 4500) ? 80 : 100;
+//			LCD.clear();
+//			LCD.drawInt((int)gyro, 0, 0);
+			leftMotor.setPower(pwr);
+			rightMotor.setPower(pwr);
+			if (gyro < 200 || gyro > 35800) break;
+			if(gyro <= 18000) {
+				leftMotor.backward();
+				rightMotor.forward();
 			} else {
-				break;
+				leftMotor.forward();
+				rightMotor.backward();	
 			}
 		}
 		stop();

@@ -3,6 +3,7 @@ package com.linq;
 import java.util.Queue;
 
 import lejos.nxt.Button;
+import lejos.nxt.LCD;
 import lejos.nxt.MotorPort;
 import lejos.nxt.Sound;
 
@@ -50,13 +51,14 @@ public class MotionToMap extends Map {
 		switch (tile) {
 			case LQMover.BLACK: setFrontBlack(); break;
 			case LQMover.WALL:  setPathFront(WALL); break;
-			case LQMover.UP_RAMP: moveNextRoom(true);
-			case LQMover.DOWN_RAMP: moveNextRoom(false);
-			default: break;
+			case LQMover.UP_RAMP: moveNextRoom(true); break;
+			case LQMover.DOWN_RAMP: moveNextRoom(false); break;
+			default: moveTile(); setPathBack(PASS);
 		}
-		moveTile();
-		setPathBack(Map.PASS);
 		if (tile == LQMover.SILVER) writeFile();
+//		LCD.clear();
+//		LCD.drawInt(tile, 0, 1);
+//		waitForButtonPress(0);
 	}
 	
 	boolean isFirstRoom() {
@@ -86,14 +88,23 @@ public class MotionToMap extends Map {
 	}
 	
 	void updateRealWallInfo() {
-		nxt.mbed.resetBuffer();
-		for(int i = 0; i < 10; i++) nxt.requestToMbedSensors();
+//		nxt.mbed.resetBuffer();
+//		for(int i = 0; i < 10; i++) 
+		nxt.requestToMbedSensors();
 	}
 	
 	void waitForButtonPress(int i) {
 		Sound.beep();
 		while(!Button.ENTER.isDown());
 		while(Button.ENTER.isDown());
+	}
+	
+	void setup() {
+		nxt.sensorSetup();
+//		nxt.mbed.debugLeds();
+//		nxt.mbed.debugServo();
+//		nxt.mbed.debugCamera();
+//		nxt.turnRight(false);
 	}
 	
 	MotionToMap() {

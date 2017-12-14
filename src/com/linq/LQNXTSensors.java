@@ -26,7 +26,7 @@ public class LQNXTSensors {
 	public int tempRightValue;
 	public int tempLeftValue;
 	public int srValue;
-
+	
 	public RCXLightSensor light_left;
 	public RCXLightSensor light_right;	//light sensor
 	public CruizcoreGyro gyro;
@@ -44,6 +44,7 @@ public class LQNXTSensors {
 	}
 /*===========================================================================*/
 	public void debugSensors() {
+		this.resetGyroValue();
 		final byte showValueOffset = 10;
 		while(!Button.ESCAPE.isDown()) {
 			LCD.clear();

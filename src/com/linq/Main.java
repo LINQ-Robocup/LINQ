@@ -8,21 +8,20 @@ public class Main {
 	
 	public static void main(String[] args) {
 		/* インスタンス生成・初期化 */
-		LQMover motion = new LQMover(MotorPort.A, MotorPort.B);
+//		LQMover motion = new LQMover(MotorPort.A, MotorPort.B);
 		MotionToMap map = new MotionToMap();
 //		RConsole.openUSB(5000);
 
 		/* センサー情報のデバッグ出力 */
-		motion.sensorSetup();
-//		motion.mbed.debugLeds();
-//		motion.mbed.debugServo();
-//		motion.mbed.debugCamera();
+		map.setup();
 		
 		/* マップ情報のリロード */
-		if(map.reload()) map.setCurPosInfo(Map.UNKNOWN);
+//		if(!map.reload()) map.setPathBack(motion.isWallBack() ? Map.WALL : Map.FLAG);
+//		map.setCurPosInfo(Map.UNKNOWN);
+		map.reload();
+		map.setPathBack(Map.WALL);
 		
 		/* 迷路探索 */
-		map.setPathBack(motion.isWallBack() ? Map.WALL : Map.FLAG);
 		map.dispMap();
 		while(true) {
 			//壁情報の取得(新規)
@@ -41,7 +40,6 @@ public class Main {
 				// マップの整形
 				map.arrangeMap();
 				map.dispMapInfo();
-//				map.waitForButtonPress(0);
 			}
 			
 			// 進行方向の決定
@@ -82,12 +80,14 @@ public class Main {
 			
 			//タイル移動
 			if (!map.isFrontWall()) {
+//				map.waitForButtonPress(0);
 				map.move();
 				map.dispMapInfo();
 				if (map.getTile() == Map.FLAG) {
 					if (map.isFirstRoom()) break;
 					map.movePrevRoom();
 				}
+//				map.waitForButtonPress(0);
 			}
 		}
 	}

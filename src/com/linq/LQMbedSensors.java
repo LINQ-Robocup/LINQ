@@ -60,7 +60,10 @@ public class LQMbedSensors {
 	}
 	
 	public void resetBuffer() {
-		while(RS485.hsRead(reset, 0, 1) > 0);
+		byte res;
+		do {
+			res = (byte) RS485.hsRead(get, 0, 10);
+		} while(res > 0);
 	}
 	
 	private void _readAllSensors() {
