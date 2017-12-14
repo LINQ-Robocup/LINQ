@@ -18,8 +18,8 @@ public class Map {
 	//　部屋の数(坂で接続された部屋の最大数)
 	static final byte ROOM 	= 2;
 	// 1部屋のサイズ(縦・横)
-	static final byte HEIGHT = 8 * 2 + 1;
-	static final byte WIDTH  = 12 * 2 + 1;
+	static final byte HEIGHT = 4 * 2 + 1;
+	static final byte WIDTH  = 9 * 2 + 1;
 	// マップ値
 	public static final byte WALL 	= 1;
 	public static final byte PASS 	= 2;
@@ -36,7 +36,7 @@ public class Map {
 	final static byte INIT_X = 1;
 	final static byte INIT_Y = 1;
 	final static byte INIT_DIREC = 0;
-	final static byte DISP_WIDTH = 6;
+	final static byte DISP_WIDTH = 9;
 	final static byte DISP_HEIGHT = 4;
   /* 変数宣言 */
 	//マップ情報
@@ -46,9 +46,14 @@ public class Map {
 	byte x, y, direc, room;
 	
 	private class PosInfo {
-		byte x = INIT_X;
-		byte y = INIT_Y;
-		byte d = INIT_DIREC;
+		byte x;
+		byte y;
+		byte d;
+		PosInfo() {
+			this.x = INIT_X;
+			this.y = INIT_Y;
+			this.d = INIT_DIREC;
+		}
 	}
 	
 	PosInfo[] ent = new PosInfo[ROOM];
@@ -297,10 +302,18 @@ public class Map {
 	}
 	
 	void moveNextRoom() {
+		setPathFront(Map.WALL);
+		ext[room].x = this.x;
+		ext[room].y = this.y;
+		ext[room].d = this.direc;
 		this.room += 1;
 		this.x = INIT_X;
 		this.y = INIT_Y;
 		this.direc = INIT_DIREC;
+		ent[room].x = this.x;
+		ent[room].y = this.y;
+		ent[room].d = this.direc;
+		setPathBack(Map.WALL);
 	}
 	
 	void movePrevRoom() {
@@ -637,13 +650,19 @@ public class Map {
 	 */
 	public void dispPosition() {
 		Graphics g = new Graphics();
-		String posInfo = "X:" + (this.x / 2 + 1)  + " Y:" + (this.y / 2 + 1) + " D :" + this.direc;
+		String posInfo = "R:" + this.room + 
+						" X:" + (this.x / 2 + 1)  + 
+						" Y:" + (this.y / 2 + 1) + 
+						" D:" + this.direc;
 		String refInfo = "F:" + getPathFront() + 
 						" B:" + getPathBack() + 
 						" R:" + getPathRight() +
 						" L:" + getPathLeft();
+//		String startInfo ="start(" + (ent[room].x/2+1) + "," + (ent[room].y/2+1) + ")";
 		LCD.drawString(posInfo, 0, 0);
 		LCD.drawString(refInfo, 0, 1);
+//		LCD.drawString(startInfo, 0, 2);
+		LCD.drawInt(getTile(), 0, 2);
 		byte tmp_x = (byte) (this.x - (byte) (this.x / (DISP_WIDTH*2)) * (DISP_WIDTH*2));
 		byte tmp_y = (byte) (this.y - (byte) (this.y / (DISP_HEIGHT*2)) * (DISP_HEIGHT*2));
 		final byte x = (byte) (tmp_x - (tmp_x / 2) - 1);

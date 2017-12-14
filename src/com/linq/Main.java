@@ -18,8 +18,7 @@ public class Main {
 		/* マップ情報のリロード */
 //		if(!map.reload()) map.setPathBack(motion.isWallBack() ? Map.WALL : Map.FLAG);
 //		map.setCurPosInfo(Map.UNKNOWN);
-		map.reload();
-		map.setPathBack(Map.WALL);
+		if(!map.reload()) map.setPathBack(Map.WALL);
 		
 		/* 迷路探索 */
 		map.dispMap();
@@ -69,6 +68,11 @@ public class Main {
 					break;
 				}
 			}
+			if (map.getTile() == Map.FLAG) {
+				if (map.isFirstRoom()) break;
+				map.movePrevRoom();
+			}
+			
 			//方向転換
 			switch (direc) {
 				case RIGHT: map.turnRight(); break;

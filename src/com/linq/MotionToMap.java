@@ -3,7 +3,6 @@ package com.linq;
 import java.util.Queue;
 
 import lejos.nxt.Button;
-import lejos.nxt.LCD;
 import lejos.nxt.MotorPort;
 import lejos.nxt.Sound;
 
@@ -47,7 +46,7 @@ public class MotionToMap extends Map {
 	
 	void move() {
 		setTilePass();
-		byte tile = nxt.tileForward(getPathFront() == PASS);
+		byte tile = nxt.tileForward(!(getPathFront() == FLAG));
 		switch (tile) {
 			case LQMover.BLACK: setFrontBlack(); break;
 			case LQMover.WALL:  setPathFront(WALL); break;
@@ -56,10 +55,8 @@ public class MotionToMap extends Map {
 			default: moveTile(); setPathBack(PASS);
 		}
 		if (tile == LQMover.SILVER) writeFile();
-//		LCD.clear();
-//		LCD.drawInt(tile, 0, 1);
-//		waitForButtonPress(0);
 	}
+	
 	
 	boolean isFirstRoom() {
 		return (this.room == 0);
@@ -82,9 +79,9 @@ public class MotionToMap extends Map {
 	}
 	
 	void movePrevRoom() {
-		super.movePrevRoom();
-		faceInDirection((byte)((INIT_DIREC + 2) % 4));
+		faceInDirection((byte)2);
 		nxt.ramp(!(Boolean)ramp.pop());
+		super.movePrevRoom();
 	}
 	
 	void updateRealWallInfo() {
