@@ -46,7 +46,7 @@ public class MotionToMap extends Map {
 	
 	void move() {
 		setTilePass();
-		byte tile = nxt.tileForward(!(getPathFront() == FLAG));
+		byte tile = nxt.tileForward(!(getPathFront() == FLAG), this.room == 0);
 		switch (tile) {
 			case LQMover.BLACK: setFrontBlack(); break;
 			case LQMover.WALL:  setPathFront(WALL); break;

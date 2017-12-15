@@ -19,7 +19,20 @@ public class Main {
 //		if(!map.reload()) map.setPathBack(motion.isWallBack() ? Map.WALL : Map.FLAG);
 //		map.setCurPosInfo(Map.UNKNOWN);
 		if(!map.reload()) map.setPathBack(Map.WALL);
-		
+		LCD.clear();
+		boolean right_hand = true;
+		while (true) {
+			if (Button.RIGHT.isDown()) {
+				right_hand = true;
+				while (Button.RIGHT.isDown());
+				break;
+			}
+			else if (Button.LEFT.isDown()) {
+				right_hand = false;
+				while (Button.LEFT.isDown());
+				break;
+			}
+		}
 		/* –À˜H’Tõ */
 		map.dispMap();
 		while(true) {
@@ -46,17 +59,20 @@ public class Main {
 			while (true) {
 				direc = Direc.BACK;
 				byte path = map.getPathBack();
-				if(map.getPathLeft() >= path) {
-					path = map.getPathLeft();
-					direc = Direc.LEFT;
+				int comp;
+				comp = right_hand ? map.getPathLeft() : map.getPathRight(); 
+				if(comp >= path) {
+					path = right_hand ? map.getPathLeft() : map.getPathRight(); 
+					direc = right_hand ? Direc.LEFT : Direc.RIGHT;
 				}
 				if(map.getPathFront() >= path) {
 					path = map.getPathFront();
 					direc = Direc.FRONT;
 				}
-				if(map.getPathRight() >= path) {
-					path = map.getPathRight();
-					direc = Direc.RIGHT;
+				comp = right_hand ? map.getPathRight() : map.getPathLeft();
+				if(comp >= path) {
+					path = right_hand ? map.getPathRight() : map.getPathLeft(); 
+					direc = right_hand ? Direc.RIGHT : Direc.LEFT;
 				}
 				// ‘S‚Ä’Ê‰ßÏ‚İ‚Ìê‡(Å’Z‚ÌFLAG‚Ü‚Å‚Ì‹——£‚ğ”z—ñ‚É‘ã“ü)
 				if (path <= Map.PASS) {

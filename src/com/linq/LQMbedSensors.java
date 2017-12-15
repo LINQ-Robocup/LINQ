@@ -90,7 +90,8 @@ public class LQMbedSensors {
 		resetBuffer();
 		RS485.hsWrite(this.send, 0, 1);
 		Delay.msDelay(1000);
-		this._readAllSensors();
+//		this._readAllSensors();
+		readAllSensors();
 	}
 	
 	public void readRaspi(boolean direction) {
