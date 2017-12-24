@@ -389,6 +389,7 @@ public class Map {
 				}
 			}	
 		} while (!que.isEmpty());
+		que = null;
 	}
 	
 	void searchFlag() {
@@ -422,6 +423,20 @@ public class Map {
 					que.clear();
 					makeDistanceMap((byte)(x+X_D[i]), (byte)(y+Y_D[i]));
 					return;
+				}
+			}
+		}
+		que = null;
+	}
+	
+	public void timeup() {
+		for (byte i = 0; i < ROOM; i++) {
+			for (byte j = 0; j < HEIGHT; j++) {
+				for (byte k = 0; k < WIDTH; k++) {
+					if (map[i][j][k] == FLAG) {
+						if (j % 2 != 0 && k % 2 != 0) map[i][j][k] = PASS;
+						else map[i][j][k] = WALL;
+					}
 				}
 			}
 		}

@@ -57,6 +57,10 @@ public class MotionToMap extends Map {
 		if (tile == LQMover.SILVER) writeFile();
 	}
 	
+	void end() {
+		nxt.end();
+	}
+	
 	
 	boolean isFirstRoom() {
 		return (this.room == 0);

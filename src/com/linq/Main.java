@@ -2,12 +2,14 @@ package com.linq;
 
 import lejos.nxt.*;
 //import lejos.nxt.comm.RConsole;
+import lejos.util.Stopwatch;
 
 public class Main {
 	enum Direc{RIGHT, LEFT, FRONT, BACK;}
-	
+	static boolean timeup_flag = false;
 	public static void main(String[] args) {
 		/* インスタンス生成・初期化 */
+		Stopwatch time = new Stopwatch();
 //		LQMover motion = new LQMover(MotorPort.A, MotorPort.B);
 		MotionToMap map = new MotionToMap();
 //		RConsole.openUSB(5000);
@@ -33,6 +35,7 @@ public class Main {
 				break;
 			}
 		}
+		time.reset();
 		/* 迷路探索 */
 		map.dispMap();
 		while(true) {
@@ -52,6 +55,15 @@ public class Main {
 				// マップの整形
 				map.arrangeMap();
 				map.dispMapInfo();
+			}
+			
+			if (!timeup_flag && (time.elapsed()) > 300000) {
+				Sound.buzz();
+				map.timeup();
+				map.dispMapInfo();
+				timeup_flag = true;
+			} else if (time.elapsed() > 330000) {
+				break;
 			}
 			
 			// 進行方向の決定
@@ -104,11 +116,14 @@ public class Main {
 				map.move();
 				map.dispMapInfo();
 				if (map.getTile() == Map.FLAG) {
-					if (map.isFirstRoom()) break;
+					if (map.isFirstRoom()) {
+						break;
+					}
 					map.movePrevRoom();
 				}
 //				map.waitForButtonPress(0);
 			}
 		}
+		map.end();
 	}
 }
